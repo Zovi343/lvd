@@ -256,6 +256,15 @@ class Client(SharedSystemClient, ClientAPI):
             database=self.database,
         )
 
+    @override
+    def _build_index(
+        self,
+        collection_id: UUID,
+    ) -> None:
+        return self._server._build_index(
+            collection_id=collection_id,
+        )
+
     #
     # ITEM METHODS
     #

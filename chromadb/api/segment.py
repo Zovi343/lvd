@@ -281,6 +281,14 @@ class SegmentAPI(ServerAPI):
             )
         return collections
 
+    @override
+    def _build_index(
+        self,
+        collection_id: UUID,
+    ) -> None:
+        vector_reader = self._manager.get_segment(collection_id, VectorReader)
+        vector_reader.build_index()
+
     @trace_method("SegmentAPI._modify", OpenTelemetryGranularity.OPERATION)
     @override
     def _modify(

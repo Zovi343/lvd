@@ -99,6 +99,14 @@ class Collection(BaseModel):
         """
         return self._client._count(collection_id=self.id)
 
+    def build_index(self):
+        """Builds the underlying vector index. If the index is already built it rebuilds it.
+
+        Returns:
+            None
+        """
+        self._client._build_index(self.id)
+
     def add(
         self,
         ids: OneOrMany[ID],

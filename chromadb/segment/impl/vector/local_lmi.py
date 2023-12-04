@@ -5,7 +5,7 @@ from chromadb.segment import VectorReader
 from chromadb.ingest import Consumer
 from chromadb.config import System, Settings
 from chromadb.segment.impl.vector.batch import Batch
-from chromadb.segment.impl.vector.hnsw_params import HnswParams
+from chromadb.segment.impl.vector.lmi_params import LMIParams
 from chromadb.telemetry.opentelemetry import (
     OpenTelemetryClient,
     OpenTelemetryGranularity,
@@ -24,6 +24,7 @@ from chromadb.types import (
 )
 from chromadb.errors import InvalidDimensionException
 from chromadb.utils.read_write_lock import ReadWriteLock, ReadRWLock, WriteRWLock
+from chromadb.lmi.lmi import LMI
 import logging
 
 logger = logging.getLogger(__name__)
@@ -37,9 +38,9 @@ class LocalLMISegment(VectorReader):
     _topic: Optional[str]
     _subscription: UUID
     _settings: Settings
-    _params: HnswParams
+    _params: LMIParams
 
-    _index: Optional[hnswlib.Index]
+    _index: Optional[LMI]
     _dimensionality: Optional[int]
     _total_elements_added: int
     _max_seq_id: SeqId
@@ -57,7 +58,7 @@ class LocalLMISegment(VectorReader):
         self._id = segment["id"]
         self._topic = segment["topic"]
         self._settings = system.settings
-        self._params = HnswParams(segment["metadata"] or {})
+        self._params = LMIParams(segment["metadata"] or {})
 
         self._index = None
         self._dimensionality = None
@@ -76,10 +77,9 @@ class LocalLMISegment(VectorReader):
     @override
     def propagate_collection_metadata(metadata: Metadata) -> Optional[Metadata]:
         # Extract relevant metadata
-        segment_metadata = HnswParams.extract(metadata)
+        segment_metadata = LMIParams.extract(metadata)
         return segment_metadata
 
-    @trace_method("LocalHnswSegment.start", OpenTelemetryGranularity.ALL)
     @override
     def start(self) -> None:
         super().start()
@@ -89,14 +89,12 @@ class LocalLMISegment(VectorReader):
                 self._topic, self._write_records, start=seq_id
             )
 
-    @trace_method("LocalHnswSegment.stop", OpenTelemetryGranularity.ALL)
     @override
     def stop(self) -> None:
         super().stop()
         if self._subscription:
             self._consumer.unsubscribe(self._subscription)
 
-    @trace_method("LocalHnswSegment.get_vectors", OpenTelemetryGranularity.ALL)
     @override
     def get_vectors(
         self, ids: Optional[Sequence[str]] = None
@@ -122,7 +120,6 @@ class LocalLMISegment(VectorReader):
 
         return results
 
-    @trace_method("LocalHnswSegment.query_vectors", OpenTelemetryGranularity.ALL)
     @override
     def query_vectors(
         self, query: VectorQuery
@@ -192,25 +189,27 @@ class LocalLMISegment(VectorReader):
     def count(self) -> int:
         return len(self._id_to_label)
 
+    @override
+    def build_index(self) -> None:
+        self._index.build_index()
+
     @trace_method("LocalHnswSegment._init_index", OpenTelemetryGranularity.ALL)
     def _init_index(self, dimensionality: int) -> None:
-        # more comments available at the source: https://github.com/nmslib/hnswlib
 
-        index = hnswlib.Index(
-            space=self._params.space, dim=dimensionality
-        )  # possible options are l2, cosine or ip
+        index = LMI()  # possible options are l2, cosine or ip
         index.init_index(
             max_elements=DEFAULT_CAPACITY,
-            ef_construction=self._params.construction_ef,
-            M=self._params.M,
+            clustering_algorithms=None,
+            epochs=None,
+            learning_rate=None,
+            model=None,
+            n_categories=None
         )
-        index.set_ef(self._params.search_ef)
         index.set_num_threads(self._params.num_threads)
 
         self._index = index
         self._dimensionality = dimensionality
 
-    @trace_method("LocalHnswSegment._ensure_index", OpenTelemetryGranularity.ALL)
     def _ensure_index(self, n: int, dim: int) -> None:
         """Create or resize the index as necessary to accomodate N new records"""
         if not self._index:
@@ -223,15 +222,14 @@ class LocalLMISegment(VectorReader):
                     + f"dimensionality ({self._dimensionality})"
                 )
 
-        index = cast(hnswlib.Index, self._index)
-
+        index = cast(LMI, self._index)
+        # The resizing does not have currently effect on the LMI
         if (self._total_elements_added + n) > index.get_max_elements():
             new_size = int(
                 (self._total_elements_added + n) * self._params.resize_factor
             )
             index.resize_index(max(new_size, DEFAULT_CAPACITY))
 
-    @trace_method("LocalHnswSegment._apply_batch", OpenTelemetryGranularity.ALL)
     def _apply_batch(self, batch: Batch) -> None:
         """Apply a batch of changes, as atomically as possible."""
         deleted_ids = batch.get_deleted_ids()
@@ -239,8 +237,9 @@ class LocalLMISegment(VectorReader):
         vectors_to_write = batch.get_written_vectors(written_ids)
         labels_to_write = [0] * len(vectors_to_write)
 
-        if len(deleted_ids) > 0:
-            index = cast(hnswlib.Index, self._index)
+        # Deletion Not Handled By LMI, ignore it
+        if len(deleted_ids) > 0 and False:
+            index = cast(LMI, self._index)
             for i in range(len(deleted_ids)):
                 id = deleted_ids[i]
                 # Never added this id to hnsw, so we can safely ignore it for deletions
@@ -253,6 +252,9 @@ class LocalLMISegment(VectorReader):
                 del self._label_to_id[label]
                 del self._id_to_seq_id[id]
 
+        # Writing in context of LMI means adding points to internal dataset
+        # This dataset is held in memory, so it is not very efficient and for large dataset unusable
+        # Will need to refactor it later
         if len(written_ids) > 0:
             self._ensure_index(batch.add_count, len(vectors_to_write[0]))
 
@@ -264,7 +266,7 @@ class LocalLMISegment(VectorReader):
                 else:
                     labels_to_write[i] = self._id_to_label[written_ids[i]]
 
-            index = cast(hnswlib.Index, self._index)
+            index = cast(LMI, self._index)
 
             # First, update the index
             index.add_items(vectors_to_write, labels_to_write)
@@ -281,7 +283,7 @@ class LocalLMISegment(VectorReader):
             # If that succeeds, finally the seq ID
             self._max_seq_id = batch.max_seq_id
 
-    @trace_method("LocalHnswSegment._write_records", OpenTelemetryGranularity.ALL)
+
     def _write_records(self, records: Sequence[EmbeddingRecord]) -> None:
         """Add a batch of embeddings to the index"""
         if not self._running:

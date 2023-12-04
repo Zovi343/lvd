@@ -20,7 +20,7 @@ from enum import Enum
 
 class SegmentType(Enum):
     SQLITE = "urn:chroma:segment/metadata/sqlite"
-    HNSW_LOCAL_MEMORY = "urn:chroma:segment/vector/hnsw-local-memory"
+    LMI_LOCAL_MEMORY = "urn:chroma:segment/vector/lmi-local-memory"
     HNSW_LOCAL_PERSISTED = "urn:chroma:segment/vector/hnsw-local-persisted"
     HNSW_DISTRIBUTED = "urn:chroma:segment/vector/hnsw-distributed"
 
@@ -89,6 +89,12 @@ class VectorReader(SegmentImplementation):
     ) -> Sequence[Sequence[VectorQueryResult]]:
         """Given a vector query, return the top-k nearest neighbors for vector in the
         query."""
+        pass
+
+    @abstractmethod
+    def build_index(self) -> None:
+        """Builds index. If the index is already built rebuilds it
+        """
         pass
 
 

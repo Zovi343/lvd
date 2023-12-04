@@ -61,10 +61,6 @@ class ChromaIndex(ABC):
         pass
 
     @abstractmethod
-    def set_ef(self, ef):
-        pass
-
-    @abstractmethod
     def set_num_threads(self, num_threads):
         pass
 
@@ -90,11 +86,6 @@ class ChromaIndex(ABC):
 
     # Properties
     dim = property()
-    algorithms = property()
-    epochs = property()
-    model = property(),
-    learning_rate = property()
-    n_categories = property()
     max_elements = property()
     num_threads = property()
     space = property()

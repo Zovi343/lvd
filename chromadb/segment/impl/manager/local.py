@@ -34,7 +34,7 @@ elif platform.system() == "Windows":
 
 SEGMENT_TYPE_IMPLS = {
     SegmentType.SQLITE: "chromadb.segment.impl.metadata.sqlite.SqliteMetadataSegment",
-    SegmentType.HNSW_LOCAL_MEMORY: "chromadb.segment.impl.vector.local_hnsw.LocalHnswSegment",
+    SegmentType.LMI_LOCAL_MEMORY: "chromadb.segment.impl.vector.local_lmi.LocalLMISegment",
     SegmentType.HNSW_LOCAL_PERSISTED: "chromadb.segment.impl.vector.local_persistent_hnsw.PersistentLocalHnswSegment",
 }
 
@@ -50,7 +50,7 @@ class LocalSegmentManager(SegmentManager):
     _segment_cache: Dict[
         UUID, Dict[SegmentScope, Segment]
     ]  # Tracks which segments are loaded for a given collection
-    _vector_segment_type: SegmentType = SegmentType.HNSW_LOCAL_MEMORY
+    _vector_segment_type: SegmentType = SegmentType.LMI_LOCAL_MEMORY
     _lock: Lock
     _max_file_handles: int
 
@@ -65,6 +65,7 @@ class LocalSegmentManager(SegmentManager):
 
         # TODO: prototyping with distributed segment for now, but this should be a configurable option
         # we need to think about how to handle this configuration
+        # TODO: adjust this for persistent LMI
         if self._system.settings.require("is_persistent"):
             self._vector_segment_type = SegmentType.HNSW_LOCAL_PERSISTED
             if platform.system() != "Windows":
@@ -158,6 +159,9 @@ class LocalSegmentManager(SegmentManager):
         with self._lock:
             instance = self._instance(self._segment_cache[collection_id][scope])
         return cast(S, instance)
+
+    def build_index(self, collection_id: UUID) -> None:
+        index_segment = self.get_segment(collection_id)
 
     @trace_method(
         "LocalSegmentManager.hint_use_collection",

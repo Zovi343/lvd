@@ -190,6 +190,25 @@ class BaseAPI(ABC):
         """
         pass
 
+    @abstractmethod
+    def _build_index(
+        self,
+        collection_id: UUID,
+    ) -> None:
+        """Builds index for collection. If it is already built rebuilds it.
+        Args:
+            collection_id: The UUID of the collection to add the embeddings to.
+
+        Raises:
+            ValueError: If the collection does not exist.
+
+        Examples:
+            ```python
+            client.build_index("my_collection")
+            ```
+        """
+        pass
+
     #
     # ITEM METHODS
     #
@@ -554,5 +573,13 @@ class ServerAPI(BaseAPI, AdminAPI, Component):
         name: str,
         tenant: str = DEFAULT_TENANT,
         database: str = DEFAULT_DATABASE,
+    ) -> None:
+        pass
+
+    @abstractmethod
+    @override
+    def _build_index(
+        self,
+        collection_id: UUID,
     ) -> None:
         pass
