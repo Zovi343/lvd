@@ -12,7 +12,8 @@ from chromadb.lmi.index.BuildConfiguration import BuildConfiguration
 from chromadb.lmi.index.clustering import ClusteringAlgorithm
 from chromadb.lmi.index.Logger import Logger
 from chromadb.lmi.index.model import LIDataset, NeuralNetwork, data_X_to_torch
-from chromadb.lmi.index.utils import pairwise_cosine, pairwise_cosine_threshold, attribute_filtering
+from chromadb.lmi.index.utils import pairwise_cosine, pairwise_cosine_threshold
+from chromadb.lmi.attribtue_filtering.default_filtering import attribute_filtering
 from tqdm import tqdm
 
 torch.manual_seed(2023)
