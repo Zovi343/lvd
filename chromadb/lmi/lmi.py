@@ -23,7 +23,7 @@ class LMI(LearnedIndex, ChromaIndex):
 
 
     def _default_configuration(self):
-        self._n_categories = [10, 10]
+        self._n_categories = [2, 2]
 
         return BuildConfiguration(
             [algorithms['faiss_kmeans']],
@@ -78,6 +78,9 @@ class LMI(LearnedIndex, ChromaIndex):
 
         data_converted = np.array(data)
 
+        if filter is not None:
+            filter = np.array([filter])
+
         dists, nns, measured_time = self.search(
             data_navigation=data_for_build,
             queries_navigation=data_converted,
@@ -85,10 +88,10 @@ class LMI(LearnedIndex, ChromaIndex):
             queries_search=data_converted,
             data_prediction=self._data_prediction,
             n_categories=self._n_categories,
-            n_buckets=50,
+            n_buckets=4,
             k=k,
             use_threshold=False,
-            attribute_filter=None
+            attribute_filter=filter
         )
 
         return nns, dists

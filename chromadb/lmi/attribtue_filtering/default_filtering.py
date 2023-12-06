@@ -22,7 +22,7 @@ def attribute_filtering(indices, attribute_filter, bucket_obj_indexes):
         mapped_values = np.array([bucket_obj_indexes[i] for i in i_row])
 
         # Performs the filtering
-        mask = np.isin(mapped_values, f_row, invert=True)
+        mask = np.isin(mapped_values, f_row, invert=False)
 
         filtered_row = i_row[mask]
 

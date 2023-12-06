@@ -27,7 +27,8 @@ collection.build_index()
 results = collection.query(
     query_embeddings=[0.5488135039273248,0.7151893663724195,0.6027633760716439],
     include=["documents", 'embeddings', 'distances'],
-    n_results=2
+    where={"status": "read"},
+    n_results=10
 )
 
 print(results)

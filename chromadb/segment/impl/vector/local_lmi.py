@@ -136,21 +136,15 @@ class LocalLMISegment(VectorReader):
             )
             k = size
 
-        labels: Set[int] = set()
         ids = query["allowed_ids"]
         if ids is not None:
-            labels = {self._id_to_label[id] for id in ids if id in self._id_to_label}
-            if len(labels) < k:
-                k = len(labels)
-
-        def filter_function(label: int) -> bool:
-            return label in labels
+            labels = [self._id_to_label[id] for id in ids if id in self._id_to_label]
 
         query_vectors = query["vectors"]
 
         with ReadRWLock(self._lock):
             result_labels, distances = self._index.knn_query(
-                query_vectors, k=k, filter=filter_function if ids else None
+                query_vectors, k=k, filter=labels if ids else None
             )
 
             # TODO: these casts are not correct, hnswlib returns np
@@ -274,6 +268,7 @@ class LocalLMISegment(VectorReader):
             # If that succeeds, update the mappings
             for i, id in enumerate(written_ids):
                 self._id_to_seq_id[id] = batch.get_record(id)["seq_id"]
+                self._seq_id_to_id = {value: key for key, value in self._id_to_seq_id.items()}
                 self._id_to_label[id] = labels_to_write[i]
                 self._label_to_id[labels_to_write[i]] = id
 
