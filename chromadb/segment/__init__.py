@@ -1,5 +1,8 @@
 from typing import Optional, Sequence, TypeVar, Type
 from abc import abstractmethod
+
+import numpy as np
+
 from chromadb.types import (
     Collection,
     MetadataEmbeddingRecord,
@@ -86,13 +89,13 @@ class VectorReader(SegmentImplementation):
     @abstractmethod
     def query_vectors(
         self, query: VectorQuery
-    ) -> Sequence[Sequence[VectorQueryResult]]:
+    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray):
         """Given a vector query, return the top-k nearest neighbors for vector in the
         query."""
         pass
 
     @abstractmethod
-    def build_index(self) -> None:
+    def build_index(self) -> np.ndarray:
         """Builds index. If the index is already built rebuilds it
         """
         pass

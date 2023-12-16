@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 
 def attribute_filtering(indices, attribute_filter, bucket_obj_indexes):
     """
@@ -18,6 +19,10 @@ def attribute_filtering(indices, attribute_filter, bucket_obj_indexes):
     filtered_indices = []
 
     for i_row, f_row in zip(indices, attribute_filter):
+        if i_row.size != bucket_obj_indexes.size:
+            warnings.warn("\n WARNING: Ann relative is bigger than the number of objects in the bucket. \n This usually caused by Threshold optimization.")
+            i_row = i_row[i_row < bucket_obj_indexes.size]
+
         # Perform mapping from bucket indices to object indicies
         mapped_values = np.array([bucket_obj_indexes[i] for i in i_row])
 

@@ -176,6 +176,7 @@ class QueryResult(TypedDict):
     data: Optional[List[Loadable]]
     metadatas: Optional[List[List[Metadata]]]
     distances: Optional[List[List[float]]]
+    bucket_order: np.ndarray
 
 
 class IndexMetadata(TypedDict):

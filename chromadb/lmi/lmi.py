@@ -9,6 +9,7 @@ from chromadb.lmi.index.clustering import ClusteringAlgorithm
 from chromadb.lmi.index.clustering import algorithms
 from typing import List, Optional, Union, Sequence
 
+
 class LMI(LearnedIndex, ChromaIndex):
     _build_config = None
     _dataset = None
@@ -18,22 +19,10 @@ class LMI(LearnedIndex, ChromaIndex):
 
     def __init__(self):
         super().__init__()
-        self._build_config = self._default_configuration()
         self._dataset = np.array([])
 
-
-    def _default_configuration(self):
-        self._n_categories = [2, 2]
-
-        return BuildConfiguration(
-            [algorithms['faiss_kmeans']],
-            [200],
-            ['MLP'],
-            [0.01],
-            self._n_categories,
-        )
-
-    def add_items(self, data: List[Union[Sequence[float], Sequence[int]]], ids=None, num_threads=-1, replace_deleted=False):
+    def add_items(self, data: List[Union[Sequence[float], Sequence[int]]], ids=None, num_threads=-1,
+                  replace_deleted=False):
         data_converted = np.array(data)
         if self._dataset.size == 0:
             data_appended = data_converted
@@ -41,24 +30,34 @@ class LMI(LearnedIndex, ChromaIndex):
             data_appended = np.concatenate((self._dataset, data_converted))
         self._dataset = data_appended
 
-
     def init_index(self,
                    max_elements,
                    clustering_algorithms: Optional[List[ClusteringAlgorithm]],
-                   epochs: Optional[List[int]], model: [str],
+                   epochs: Optional[List[int]],
+                   model_types: [str],
                    learning_rate: Optional[List[int]],
                    n_categories: Optional[List[int]],
                    is_persistent_index=False,
                    persistence_location=None
                    ):
-        if algorithms is not None and epochs is not None and model is not None and learning_rate is not None:
-            self._build_config = BuildConfiguration(
-                clustering_algorithms,
-                epochs,
-                model,
-                learning_rate,
-                n_categories,
-            )
+        print(f"""
+            LMI Build Config:
+            {{
+                clustering_algorithms: {clustering_algorithms},
+                epochs: {epochs},
+                model_types: {model_types},
+                learning_rate: {learning_rate},
+                n_categories: {n_categories},
+            }}
+             """)
+        self._n_categories = n_categories
+        self._build_config = BuildConfiguration(
+            clustering_algorithms,
+            epochs,
+            model_types,
+            learning_rate,
+            n_categories,
+        )
 
     def build_index(self):
         # Convert dataset to pandas and shift its index by one if it starts at zero
@@ -66,12 +65,14 @@ class LMI(LearnedIndex, ChromaIndex):
         if data_for_build.index.start == 0:
             data_for_build.index += 1
 
-        data_prediction, n_buckets_in_index, build_t, cluster_t  = self.build(data_for_build, self._build_config)
+        data_prediction, n_buckets_in_index, build_t, cluster_t = self.build(data_for_build, self._build_config)
         self._data_prediction = data_prediction
         print(f"LMI built with n_buckets_in_index: {n_buckets_in_index}")
         print(f"Time taken to build: {build_t}; Time taken to cluster: {cluster_t}")
+        return data_prediction
 
-    def knn_query(self, data, k=1, num_threads=-1, filter=None, *args, **kwargs):
+    def knn_query(self, data, k=1, n_buckets=1, use_threshold=False, num_threads=-1, filter=None, *args, **kwargs)\
+            -> (np.ndarray, np.ndarray, np.ndarray):
         data_for_build = pd.DataFrame(self._dataset)
         if data_for_build.index.start == 0:
             data_for_build.index += 1
@@ -81,20 +82,20 @@ class LMI(LearnedIndex, ChromaIndex):
         if filter is not None:
             filter = np.array([filter])
 
-        dists, nns, measured_time = self.search(
+        dists, nns, bucket_order, measured_time = self.search(
             data_navigation=data_for_build,
             queries_navigation=data_converted,
             data_search=data_for_build,
             queries_search=data_converted,
             data_prediction=self._data_prediction,
             n_categories=self._n_categories,
-            n_buckets=4,
+            n_buckets=n_buckets,
             k=k,
-            use_threshold=False,
+            use_threshold=use_threshold,
             attribute_filter=filter
         )
 
-        return nns, dists
+        return nns, dists, bucket_order
 
     def get_items(self, ids=None):
         return self._dataset
@@ -154,5 +155,6 @@ class LMI(LearnedIndex, ChromaIndex):
 
     def __repr__(self):
         pass
+
     def __setstate__(self, arg0):
         pass

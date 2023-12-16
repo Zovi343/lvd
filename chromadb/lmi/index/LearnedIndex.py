@@ -48,7 +48,7 @@ class LearnedIndex(Logger):
         k: int = 10,
         use_threshold: bool = True,
         attribute_filter: Optional[npt.NDArray[np.uint32]] = None,
-    ) -> Tuple[npt.NDArray, npt.NDArray[np.uint32], Dict[str, float]]:
+    ) -> Tuple[npt.NDArray, npt.NDArray[np.uint32], npt.NDArray, Dict[str, float]]:
         """Searches for `k` nearest neighbors for each query in `queries`.
 
         Implementation details:
@@ -165,7 +165,7 @@ class LearnedIndex(Logger):
 
         measured_time["search"] = time.time() - s
 
-        return dists_final, anns_final, measured_time
+        return dists_final, anns_final, bucket_order, measured_time
 
     def _precompute_bucket_order(
         self,
@@ -220,7 +220,6 @@ class LearnedIndex(Logger):
 
             def __init__(self):
                 total_n_buckets = np.prod(n_categories)
-
                 self.probability: npt.NDArray[np.float32] = np.full(
                     (n_queries, total_n_buckets),
                     fill_value=EMPTY_VALUE,
@@ -477,7 +476,7 @@ class LearnedIndex(Logger):
                 s = time.time()
                 ann_relative = seq_search_dists.argsort(kind="quicksort")
 
-                # Perform attribute filtering
+                # Perform bucket level attribute filtering
                 if attribute_filter is not None:
                     ann_relative = attribute_filtering(ann_relative, attribute_filter, bucket_obj_indexes)
 

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Sequence, Optional
 from uuid import UUID
 
+import numpy as np
 from overrides import override
 from chromadb.config import DEFAULT_DATABASE, DEFAULT_TENANT
 from chromadb.api.models.Collection import Collection
@@ -194,7 +195,7 @@ class BaseAPI(ABC):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> None:
+    ) -> np.ndarray:
         """Builds index for collection. If it is already built rebuilds it.
         Args:
             collection_id: The UUID of the collection to add the embeddings to.
@@ -378,6 +379,8 @@ class BaseAPI(ABC):
         where: Where = {},
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
+        n_buckets: int = 1,
+        use_threshold: bool = False,
     ) -> QueryResult:
         """[Internal] Performs a nearest neighbors query on a collection specified by UUID.
 
@@ -581,5 +584,5 @@ class ServerAPI(BaseAPI, AdminAPI, Component):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> None:
+    ) -> np.ndarray:
         pass

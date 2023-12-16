@@ -3,7 +3,7 @@ import pandas as pd
 from chromadb.config import Settings
 
 # Load the CSV file
-csv_file_path = './random_embeddings.csv'
+csv_file_path = 'data/random_embeddings.csv'
 data = pd.read_csv(csv_file_path)
 
 # Initialize the Chroma client
@@ -26,9 +26,13 @@ collection.build_index()
 
 results = collection.query(
     query_embeddings=[0.5488135039273248,0.7151893663724195,0.6027633760716439],
-    include=["documents", 'embeddings', 'distances'],
+    include=["metadatas", 'embeddings', 'distances'],
     where={"status": "read"},
-    n_results=10
+    n_results=10,
+    n_buckets=1,
+    use_threshold=True, # TODO: this causes problems, hotfix applied for now
 )
 
-print(results)
+print(results['ids'])
+print(results['distances'])
+print(results['metadatas'])

@@ -124,6 +124,9 @@ class VectorQuery(TypedDict):
     allowed_ids: Optional[Sequence[str]]
     include_embeddings: bool
     options: Optional[Dict[str, Union[str, int, float, bool]]]
+    n_buckets: int
+    use_threshold: bool
+
 
 
 class VectorQueryResult(TypedDict):

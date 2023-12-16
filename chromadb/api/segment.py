@@ -14,6 +14,7 @@ from chromadb.api.models.Collection import Collection
 from chromadb import __version__
 from chromadb.errors import InvalidDimensionException, InvalidCollectionException
 import chromadb.utils.embedding_functions as ef
+import numpy as np
 
 from chromadb.api.types import (
     URI,
@@ -285,9 +286,9 @@ class SegmentAPI(ServerAPI):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> None:
+    ) -> np.ndarray:
         vector_reader = self._manager.get_segment(collection_id, VectorReader)
-        vector_reader.build_index()
+        return vector_reader.build_index()
 
     @trace_method("SegmentAPI._modify", OpenTelemetryGranularity.OPERATION)
     @override
@@ -643,6 +644,8 @@ class SegmentAPI(ServerAPI):
         where: Where = {},
         where_document: WhereDocument = {},
         include: Include = ["documents", "metadatas", "distances"],
+        n_buckets: int = 1,
+        use_threshold: bool = False,
     ) -> QueryResult:
         add_attributes_to_current_span(
             {
@@ -678,10 +681,12 @@ class SegmentAPI(ServerAPI):
             allowed_ids=allowed_ids,
             include_embeddings="embeddings" in include,
             options=None,
+            n_buckets=n_buckets,
+            use_threshold=use_threshold,
         )
 
         vector_reader = self._manager.get_segment(collection_id, VectorReader)
-        results = vector_reader.query_vectors(query)
+        results, bucket_order = vector_reader.query_vectors(query)
 
         ids: List[List[str]] = []
         distances: List[List[float]] = []
@@ -746,6 +751,7 @@ class SegmentAPI(ServerAPI):
             documents=documents if documents else None,
             uris=uris if uris else None,
             data=None,
+            bucket_order=bucket_order
         )
 
     @trace_method("SegmentAPI._peek", OpenTelemetryGranularity.OPERATION)

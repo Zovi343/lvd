@@ -1,6 +1,7 @@
 from typing import ClassVar, Dict, Optional, Sequence
 from uuid import UUID
 
+import numpy as np
 from overrides import override
 import requests
 from chromadb.api import AdminAPI, ClientAPI, ServerAPI
@@ -260,7 +261,7 @@ class Client(SharedSystemClient, ClientAPI):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> None:
+    ) -> np.ndarray:
         return self._server._build_index(
             collection_id=collection_id,
         )
@@ -389,6 +390,8 @@ class Client(SharedSystemClient, ClientAPI):
         where: Where = {},
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
+        n_buckets: int = 1,
+        use_threshold: bool = False,
     ) -> QueryResult:
         return self._server._query(
             collection_id=collection_id,

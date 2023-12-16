@@ -29,6 +29,7 @@ from chromadb.types import (
 )
 import hnswlib
 import logging
+import numpy as np
 
 from chromadb.utils.read_write_lock import ReadRWLock, WriteRWLock
 
@@ -338,7 +339,7 @@ class PersistentLocalHnswSegment(LocalHnswSegment):
     @override
     def query_vectors(
         self, query: VectorQuery
-    ) -> Sequence[Sequence[VectorQueryResult]]:
+    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray):
         if self._index is None and self._brute_force_index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -418,7 +419,7 @@ class PersistentLocalHnswSegment(LocalHnswSegment):
                             curr_bf_result[bf_pointer : bf_pointer + remaining]
                         )
                     results.append(curr_results)
-            return results
+            return results, np.array([])
 
     @trace_method(
         "PersistentLocalHnswSegment.reset_state", OpenTelemetryGranularity.ALL

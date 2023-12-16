@@ -1,8 +1,10 @@
 import multiprocessing
 import re
-from typing import Any, Callable, Dict, Union
+from typing import Any, Callable, Dict, Union, List
+import ast
 
 from chromadb.types import Metadata
+from chromadb.lmi.index.clustering import algorithms
 
 
 Validator = Callable[[Union[str, int, float]], bool]
@@ -10,7 +12,11 @@ Validator = Callable[[Union[str, int, float]], bool]
 param_validators: Dict[str, Validator] = {
     "lmi:space": lambda p: bool(re.match(r"^(l2|cosine|ip)$", str(p))),
     "lmi:num_threads": lambda p: isinstance(p, int),
-    "lmi:resize_factor": lambda p: isinstance(p, (int, float)),
+    "lmi:clustering_algorithms": lambda p: isinstance(p, str) and p != "",
+    "lmi:epochs": lambda p: isinstance(p, str) and p != "",
+    "lmi:model_types": lambda p: isinstance(p, str) and p != "",
+    "lmi:lrs": lambda p: isinstance(p, str) and p != "",
+    "lmi:n_categories": lambda p: isinstance(p, str) and p != "",
 }
 
 # Extra params used for persistent lmi
@@ -47,11 +53,15 @@ class LMIParams(Params):
 
     def __init__(self, metadata: Metadata):
         metadata = metadata or {}
-        self.space = str(metadata.get("lmi:space", "l2"))
+        self.space = metadata.get("lmi:space", "cosine")
+        self.clustering_algorithms = metadata.get("lmi:clustering_algorithms", [algorithms['faiss_kmeans']])
+        self.epochs = ast.literal_eval(metadata.get("lmi:epochs", "[200]"))
+        self.model_types = ast.literal_eval(metadata.get("lmi:model_types", "['MLP']"))
+        self.lrs = ast.literal_eval(metadata.get("lmi:lrs", "[0.01]"))
+        self.n_categories = ast.literal_eval(metadata.get("lmi:n_categories", "[2, 2]"))
         self.num_threads = int(
             metadata.get("lmi:num_threads", multiprocessing.cpu_count())
         )
-        self.resize_factor = float(metadata.get("lmi:resize_factor", 1.2))
 
     @staticmethod
     def extract(metadata: Metadata) -> Metadata:

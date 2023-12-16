@@ -26,6 +26,7 @@ from chromadb.errors import InvalidDimensionException
 import hnswlib
 from chromadb.utils.read_write_lock import ReadWriteLock, ReadRWLock, WriteRWLock
 import logging
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -127,7 +128,7 @@ class LocalHnswSegment(VectorReader):
     @override
     def query_vectors(
         self, query: VectorQuery
-    ) -> Sequence[Sequence[VectorQueryResult]]:
+    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray):
         if self._index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -183,7 +184,7 @@ class LocalHnswSegment(VectorReader):
                     )
                 all_results.append(results)
 
-            return all_results
+            return all_results, np.array([])
 
     @override
     def max_seqid(self) -> SeqId:

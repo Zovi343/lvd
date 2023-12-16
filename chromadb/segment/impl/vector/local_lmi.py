@@ -1,3 +1,4 @@
+import numpy as np
 from overrides import override
 from typing import Optional, Sequence, Dict, Set, List, cast
 from uuid import UUID
@@ -123,11 +124,14 @@ class LocalLMISegment(VectorReader):
     @override
     def query_vectors(
         self, query: VectorQuery
-    ) -> Sequence[Sequence[VectorQueryResult]]:
+    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray):
         if self._index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
         k = query["k"]
+        n_buckets = query["n_buckets"]
+        use_threshold = query["use_threshold"]
+
         size = len(self._id_to_label)
 
         if k > size:
@@ -143,8 +147,8 @@ class LocalLMISegment(VectorReader):
         query_vectors = query["vectors"]
 
         with ReadRWLock(self._lock):
-            result_labels, distances = self._index.knn_query(
-                query_vectors, k=k, filter=labels if ids else None
+            result_labels, distances, bucket_order = self._index.knn_query(
+                query_vectors, k=k, n_buckets=n_buckets, use_threshold=use_threshold, filter=labels if ids else None
             )
 
             # TODO: these casts are not correct, hnswlib returns np
@@ -173,7 +177,7 @@ class LocalLMISegment(VectorReader):
                     )
                 all_results.append(results)
 
-            return all_results
+            return all_results, bucket_order
 
     @override
     def max_seqid(self) -> SeqId:
@@ -184,20 +188,19 @@ class LocalLMISegment(VectorReader):
         return len(self._id_to_label)
 
     @override
-    def build_index(self) -> None:
-        self._index.build_index()
+    def build_index(self) -> np.ndarray:
+        return self._index.build_index()
 
-    @trace_method("LocalHnswSegment._init_index", OpenTelemetryGranularity.ALL)
     def _init_index(self, dimensionality: int) -> None:
 
         index = LMI()  # possible options are l2, cosine or ip
         index.init_index(
             max_elements=DEFAULT_CAPACITY,
-            clustering_algorithms=None,
-            epochs=None,
-            learning_rate=None,
-            model=None,
-            n_categories=None
+            clustering_algorithms=self._params.clustering_algorithms,
+            epochs=self._params.epochs,
+            learning_rate=self._params.lrs,
+            model_types=self._params.model_types,
+            n_categories=self._params.n_categories
         )
         index.set_num_threads(self._params.num_threads)
 

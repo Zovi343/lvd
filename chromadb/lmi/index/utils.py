@@ -7,6 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 def pairwise_cosine(x, y):
+    # TODOL  find out what is category_L1 and category_L2
+    y = y.drop(['category_L1'], axis=1) # , 'category_L2'
     return 1-cosine_similarity(x, y)
 
 
@@ -18,6 +20,8 @@ def pairwise_cosine_threshold(
     k: int = 10,
 ):
     s = time.time()
+    # TODO:  find out what is category_L1 and category_L2
+    y = y.drop(['category_L1'], axis=1) # , 'category_L2'
     result = 1-cosine_similarity(x, y)
     t_pure_seq_search = time.time() - s
     # create an array of consisten shapes
