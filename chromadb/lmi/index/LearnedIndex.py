@@ -477,6 +477,7 @@ class LearnedIndex(Logger):
                 ann_relative = seq_search_dists.argsort(kind="quicksort")
 
                 # Perform bucket level attribute filtering
+                # TODO: this is wrong we want to filter before we compute distances. Move it to the beginning of the function.
                 if attribute_filter is not None:
                     ann_relative = attribute_filtering(ann_relative, attribute_filter, bucket_obj_indexes)
 

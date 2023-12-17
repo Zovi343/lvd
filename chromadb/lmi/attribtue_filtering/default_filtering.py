@@ -20,7 +20,7 @@ def attribute_filtering(indices, attribute_filter, bucket_obj_indexes):
 
     for i_row, f_row in zip(indices, attribute_filter):
         if i_row.size != bucket_obj_indexes.size:
-            warnings.warn("\n WARNING: Ann relative is bigger than the number of objects in the bucket. \n This usually caused by Threshold optimization.")
+            warnings.warn("\n WARNING: Ann relative is bigger than the number of objects in the bucket. This usually caused by Threshold optimization!\n")
             i_row = i_row[i_row < bucket_obj_indexes.size]
 
         # Perform mapping from bucket indices to object indicies
@@ -35,6 +35,7 @@ def attribute_filtering(indices, attribute_filter, bucket_obj_indexes):
 
     # Constructs the resulting filtered list and pads it with -1
     # TODO: padding may cause problems, verify that it will work like this in edge cases
+    # TODO: this causes bug when there are no object satisfying the filter in the bucket
     filtered_indices = np.array(
         [np.pad(row, (0, indices.shape[1] - len(row)), 'constant', constant_values=-1) for row in filtered_indices],
         dtype=int)

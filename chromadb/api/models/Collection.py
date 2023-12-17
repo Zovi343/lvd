@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Tuple, Any
+from typing import TYPE_CHECKING, Optional, Tuple, Any, Dict
 
 import numpy as np
 from pydantic import BaseModel, PrivateAttr
@@ -101,7 +101,7 @@ class Collection(BaseModel):
         """
         return self._client._count(collection_id=self.id)
 
-    def build_index(self) -> np.ndarray:
+    def build_index(self) -> Dict[str, np.ndarray]:
         """Builds the underlying vector index. If the index is already built it rebuilds it.
 
         Returns:

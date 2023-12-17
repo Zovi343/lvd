@@ -15,7 +15,7 @@ def cluster(
 
     _, d = data.shape
 
-    kmeans = Kmeans(d=d, k=n_clusters, **parameters)
+    kmeans = Kmeans(d=d, k=n_clusters, niter=100, **parameters)
     kmeans.train(data)
 
     labels = kmeans.index.search(data, 1)[1].T[0]  # type: ignore

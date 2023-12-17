@@ -160,9 +160,6 @@ class LocalSegmentManager(SegmentManager):
             instance = self._instance(self._segment_cache[collection_id][scope])
         return cast(S, instance)
 
-    def build_index(self, collection_id: UUID) -> None:
-        index_segment = self.get_segment(collection_id)
-
     @trace_method(
         "LocalSegmentManager.hint_use_collection",
         OpenTelemetryGranularity.OPERATION_AND_SEGMENT,

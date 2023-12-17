@@ -177,6 +177,7 @@ class LocalLMISegment(VectorReader):
                     )
                 all_results.append(results)
 
+            # TODO: move bucket_order to the VectorQueryResult
             return all_results, bucket_order
 
     @override
@@ -188,11 +189,17 @@ class LocalLMISegment(VectorReader):
         return len(self._id_to_label)
 
     @override
-    def build_index(self) -> np.ndarray:
-        return self._index.build_index()
+    def build_index(self) -> Dict[str, np.ndarray]:
+        label_position_to_bucket = self._index.build_index()
+        id_to_bucket = {}
+        for label, bucket in enumerate(label_position_to_bucket):
+            id = self._label_to_id[label + 1]
+            id_to_bucket[id] = bucket
+
+        return id_to_bucket
+
 
     def _init_index(self, dimensionality: int) -> None:
-
         index = LMI()  # possible options are l2, cosine or ip
         index.init_index(
             max_elements=DEFAULT_CAPACITY,

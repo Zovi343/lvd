@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, TypeVar, Type
+from typing import Optional, Sequence, TypeVar, Type, Dict
 from abc import abstractmethod
 
 import numpy as np
@@ -95,7 +95,7 @@ class VectorReader(SegmentImplementation):
         pass
 
     @abstractmethod
-    def build_index(self) -> np.ndarray:
+    def build_index(self) -> Dict[str, np.ndarray]:
         """Builds index. If the index is already built rebuilds it
         """
         pass
