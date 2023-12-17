@@ -126,6 +126,7 @@ class VectorQuery(TypedDict):
     options: Optional[Dict[str, Union[str, int, float, bool]]]
     n_buckets: int
     use_threshold: bool
+    constraint_weight: float
 
 
 

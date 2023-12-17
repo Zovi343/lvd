@@ -392,6 +392,7 @@ class Client(SharedSystemClient, ClientAPI):
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
         n_buckets: int = 1,
         use_threshold: bool = False,
+        constraint_weight: float = 0.0,
     ) -> QueryResult:
         return self._server._query(
             collection_id=collection_id,
@@ -400,6 +401,8 @@ class Client(SharedSystemClient, ClientAPI):
             where=where,
             where_document=where_document,
             include=include,
+            use_threshold=use_threshold,
+            constraint_weight=constraint_weight,
         )
 
     @override

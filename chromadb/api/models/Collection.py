@@ -258,6 +258,7 @@ class Collection(BaseModel):
         include: Include = ["metadatas", "documents", "distances"],
         n_buckets: int = 1,
         use_threshold: bool = False,
+        constraint_weight: float = 0.0
     ) -> QueryResult:
         """Get the n_results nearest neighbor embeddings for provided query_embeddings or query_texts.
 
@@ -350,6 +351,7 @@ class Collection(BaseModel):
             include=include,
             n_buckets=n_buckets,
             use_threshold=use_threshold,
+            constraint_weight=constraint_weight
         )
 
         if (

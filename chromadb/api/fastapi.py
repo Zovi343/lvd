@@ -546,6 +546,8 @@ class FastAPI(ServerAPI):
         where: Optional[Where] = {},
         where_document: Optional[WhereDocument] = {},
         include: Include = ["metadatas", "documents", "distances"],
+        use_threshold: bool = False,
+        constraint_weight: float = 0.0,
     ) -> QueryResult:
         """Gets the nearest neighbors of a single embedding"""
         resp = self._session.post(
@@ -557,6 +559,8 @@ class FastAPI(ServerAPI):
                     "where": where,
                     "where_document": where_document,
                     "include": include,
+                    "use_threshold": use_threshold,
+                    "constraint_weight": constraint_weight
                 }
             ),
         )

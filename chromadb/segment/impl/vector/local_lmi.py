@@ -131,6 +131,7 @@ class LocalLMISegment(VectorReader):
         k = query["k"]
         n_buckets = query["n_buckets"]
         use_threshold = query["use_threshold"]
+        constraint_weight = query["constraint_weight"]
 
         size = len(self._id_to_label)
 
@@ -148,7 +149,12 @@ class LocalLMISegment(VectorReader):
 
         with ReadRWLock(self._lock):
             result_labels, distances, bucket_order = self._index.knn_query(
-                query_vectors, k=k, n_buckets=n_buckets, use_threshold=use_threshold, filter=labels if ids else None
+                query_vectors,
+                k=k,
+                n_buckets=n_buckets,
+                use_threshold=use_threshold,
+                constraint_weight=constraint_weight,
+                filter=labels if ids else None
             )
 
             # TODO: these casts are not correct, hnswlib returns np

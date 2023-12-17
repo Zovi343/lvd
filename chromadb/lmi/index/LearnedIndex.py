@@ -47,7 +47,10 @@ class LearnedIndex(Logger):
         n_buckets: int = 1,
         k: int = 10,
         use_threshold: bool = True,
+        # Constraint Modification Start
         attribute_filter: Optional[npt.NDArray[np.uint32]] = None,
+        constraint_weight=0.0
+        # Constraint Modification End
     ) -> Tuple[npt.NDArray, npt.NDArray[np.uint32], npt.NDArray, Dict[str, float]]:
         """Searches for `k` nearest neighbors for each query in `queries`.
 
@@ -97,6 +100,9 @@ class LearnedIndex(Logger):
             queries_navigation=queries_navigation,
             n_buckets=n_buckets,
             n_categories=n_categories,
+            attribute_filter=attribute_filter,
+            data_prediction=data_prediction,
+            constraint_weight=constraint_weight
         )
         self.logger.info(f"Precompute bucket order time: {time.time() - s_}")
 
@@ -126,6 +132,7 @@ class LearnedIndex(Logger):
                 bucket_path=bucket_order[:, bucket_order_idx, :],
                 threshold_dist=threshold_dist,
                 n_levels=len(n_categories),
+                # Constraint Modification End
                 attribute_filter=attribute_filter
             )
             self.logger.debug(f"Searched the bucket in: {time.time() - t}")
@@ -172,6 +179,9 @@ class LearnedIndex(Logger):
         queries_navigation: npt.NDArray[np.float32],
         n_buckets: int,
         n_categories: List[int],
+        attribute_filter: Optional[npt.NDArray[np.uint32]] = None,
+        data_prediction: npt.NDArray[np.int64] = None,
+        constraint_weight=0.0
     ) -> Tuple[npt.NDArray[np.int32], float]:
         """
         Precomputes the order in which the queries visit the buckets.
@@ -380,6 +390,38 @@ class LearnedIndex(Logger):
         total_inference_t += time.time() - s
 
         if n_levels == 1:
+            # --- Constraint Modification Start ---
+            # Shift back by minus one so we can access the correct index in data_prediction
+            shifted_attribute_filters = attribute_filter - 1
+
+            attribute_filter_to_buckets = np.array(
+                [data_prediction[filter_array] for filter_array in shifted_attribute_filters])
+
+            constraint_ratios = np.zeros_like(pred_l1_paths, dtype=float)
+
+            for i, (pred_array, result_array) in enumerate(zip(pred_l1_paths, attribute_filter_to_buckets)):
+                # Count occurrences of constr object in each bucket
+                unique_elements, counts = np.unique(result_array, return_counts=True)
+                element_counts = dict(zip(unique_elements, counts))
+
+                # Calculate the representation ratio for each filter
+                total_elements = result_array.size
+                constraint_ratios[i] = [element_counts.get(element, 0) / total_elements for element in pred_array]
+
+            model_weight = 1 - constraint_weight
+            # TODO: maybe consider normalization since floating point rounding errors can cause the sum to be > 1
+            weighted_probabilities = model_weight * pred_l1_prob + constraint_weight * constraint_ratios
+
+            # Reorder pred_l1_paths based on the descending order of weighted_probabilities
+            # First, get the indices that would sort weighted_probabilities in descending order
+            sort_indices = np.argsort(-weighted_probabilities, axis=1)
+
+            # Use these indices to reorder both weighted_probabilities and pred_l1_paths
+            weighted_probabilities = np.take_along_axis(weighted_probabilities, sort_indices, axis=1)
+            pred_l1_paths = np.take_along_axis(pred_l1_paths, sort_indices, axis=1)
+
+            # --- Constrain Modification End --
+
             bucket_order = np.full(
                 (n_queries, n_buckets, n_levels), fill_value=EMPTY_VALUE, dtype=np.int32
             )

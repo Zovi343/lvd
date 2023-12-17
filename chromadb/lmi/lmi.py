@@ -71,7 +71,7 @@ class LMI(LearnedIndex, ChromaIndex):
         print(f"Time taken to build: {build_t}; Time taken to cluster: {cluster_t}")
         return data_prediction
 
-    def knn_query(self, data, k=1, n_buckets=1, use_threshold=False, num_threads=-1, filter=None, *args, **kwargs)\
+    def knn_query(self, data, k=1, n_buckets=1, use_threshold=False, constraint_weight=0.0, num_threads=-1, filter=None, *args, **kwargs)\
             -> (np.ndarray, np.ndarray, np.ndarray):
         data_for_build = pd.DataFrame(self._dataset)
         if data_for_build.index.start == 0:
@@ -92,7 +92,8 @@ class LMI(LearnedIndex, ChromaIndex):
             n_buckets=n_buckets,
             k=k,
             use_threshold=use_threshold,
-            attribute_filter=filter
+            attribute_filter=filter,
+            constraint_weight=constraint_weight
         )
 
         return nns, dists, bucket_order

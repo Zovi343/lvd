@@ -646,6 +646,7 @@ class SegmentAPI(ServerAPI):
         include: Include = ["documents", "metadatas", "distances"],
         n_buckets: int = 1,
         use_threshold: bool = False,
+        constraint_weight: float = 0.0,
     ) -> QueryResult:
         add_attributes_to_current_span(
             {
@@ -683,6 +684,7 @@ class SegmentAPI(ServerAPI):
             options=None,
             n_buckets=n_buckets,
             use_threshold=use_threshold,
+            constraint_weight=constraint_weight,
         )
 
         vector_reader = self._manager.get_segment(collection_id, VectorReader)
