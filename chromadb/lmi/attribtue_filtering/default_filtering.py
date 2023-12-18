@@ -37,7 +37,7 @@ def attribute_filtering(indices, attribute_filter, bucket_obj_indexes):
     # TODO: padding may cause problems, verify that it will work like this in edge cases
     # TODO: this causes bug when there are no object satisfying the filter in the bucket
     filtered_indices = np.array(
-        [np.pad(row, (0, indices.shape[1] - len(row)), 'constant', constant_values=-1) for row in filtered_indices],
+        [np.pad(row, (0, indices.shape[1] - len(row)), 'constant', constant_values=len(bucket_obj_indexes)) for row in filtered_indices],
         dtype=int)
 
     return filtered_indices

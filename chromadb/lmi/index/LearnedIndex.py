@@ -545,7 +545,12 @@ class LearnedIndex(Logger):
                     # assign a large number such that the duplicated value gets replaced
                     seq_search_dists[0][duplicates_i] = 10_000
 
-                nns[relevant_query_idxs] = np.array(bucket_obj_indexes)[ann_relative]
+                # CONSTRAIN MODIFICATION START
+                # Verify if this won't hurt the performance
+                nns[relevant_query_idxs] = np.array(bucket_obj_indexes.append(pd.Index([0])))[ann_relative]
+                seq_search_dists = np.hstack(
+                    (seq_search_dists, np.full((seq_search_dists.shape[0], 1), np.inf)))
+                # CONSTRAIN MODIFICATION END
                 dists[relevant_query_idxs] = np.take_along_axis(
                     seq_search_dists, ann_relative, axis=1
                 )
