@@ -390,7 +390,7 @@ class LearnedIndex(Logger):
         total_inference_t += time.time() - s
 
         if n_levels == 1:
-            # --- Constraint Modification Start ---
+            # --- CONSTRAINT MODIFICATION START ---
             # Shift back by minus one so we can access the correct index in data_prediction
             shifted_attribute_filters = attribute_filter - 1
 
@@ -420,7 +420,7 @@ class LearnedIndex(Logger):
             weighted_probabilities = np.take_along_axis(weighted_probabilities, sort_indices, axis=1)
             pred_l1_paths = np.take_along_axis(pred_l1_paths, sort_indices, axis=1)
 
-            # --- Constrain Modification End --
+            # --- CONSTRAINT MODIFICATION END --
 
             bucket_order = np.full(
                 (n_queries, n_buckets, n_levels), fill_value=EMPTY_VALUE, dtype=np.int32
@@ -534,6 +534,10 @@ class LearnedIndex(Logger):
                     bucket_obj_indexes = np.pad(
                         np.array(bucket_obj_indexes), pad_needed, "edge"
                     )[:k]
+                    # CONSTRAINT MODIFICATION START
+                    # Need to convert to pd.Index since code bellow excepts it
+                    bucket_obj_indexes = pd.Index(bucket_obj_indexes)
+                    # CONSTRAINT MODIFICATION END
                     ann_relative = np.pad(ann_relative[0], pad_needed, "edge")[
                         :k
                     ].reshape(1, -1)
@@ -545,12 +549,12 @@ class LearnedIndex(Logger):
                     # assign a large number such that the duplicated value gets replaced
                     seq_search_dists[0][duplicates_i] = 10_000
 
-                # CONSTRAIN MODIFICATION START
+                # CONSTRAINT MODIFICATION START
                 # Verify if this won't hurt the performance
                 nns[relevant_query_idxs] = np.array(bucket_obj_indexes.append(pd.Index([0])))[ann_relative]
                 seq_search_dists = np.hstack(
                     (seq_search_dists, np.full((seq_search_dists.shape[0], 1), np.inf)))
-                # CONSTRAIN MODIFICATION END
+                # CONSTRAINT MODIFICATION END
                 dists[relevant_query_idxs] = np.take_along_axis(
                     seq_search_dists, ann_relative, axis=1
                 )
