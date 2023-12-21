@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Tuple, Any, Dict
+from typing import TYPE_CHECKING, Optional, Tuple, Any, Union, Dict
 
 import numpy as np
 from pydantic import BaseModel, PrivateAttr
@@ -112,7 +112,12 @@ class Collection(BaseModel):
     def add(
         self,
         ids: OneOrMany[ID],
-        embeddings: Optional[OneOrMany[Embedding]] = None,
+        embeddings: Optional[
+            Union[
+                OneOrMany[Embedding],
+                OneOrMany[np.ndarray],
+            ]
+        ] = None,
         metadatas: Optional[OneOrMany[Metadata]] = None,
         documents: Optional[OneOrMany[Document]] = None,
         images: Optional[OneOrMany[Image]] = None,
@@ -248,7 +253,12 @@ class Collection(BaseModel):
 
     def query(
         self,
-        query_embeddings: Optional[OneOrMany[Embedding]] = None,
+        query_embeddings: Optional[
+            Union[
+                OneOrMany[Embedding],
+                OneOrMany[np.ndarray],
+            ]
+        ] = None,
         query_texts: Optional[OneOrMany[Document]] = None,
         query_images: Optional[OneOrMany[Image]] = None,
         query_uris: Optional[OneOrMany[URI]] = None,
@@ -300,7 +310,11 @@ class Collection(BaseModel):
             validate_where_document(where_document) if where_document else {}
         )
         valid_query_embeddings = (
-            validate_embeddings(maybe_cast_one_to_many_embedding(query_embeddings))
+            validate_embeddings(
+                self._normalize_embeddings(
+                    maybe_cast_one_to_many_embedding(query_embeddings)
+                )
+            )
             if query_embeddings is not None
             else None
         )
@@ -341,7 +355,6 @@ class Collection(BaseModel):
 
         if "data" in include and "uris" not in include:
             valid_include.append("uris")
-
         query_results = self._client._query(
             collection_id=self.id,
             query_embeddings=valid_query_embeddings,
@@ -383,6 +396,9 @@ class Collection(BaseModel):
         """
         if metadata is not None:
             validate_metadata(metadata)
+            if "hnsw:space" in metadata:
+                raise ValueError(
+                    "Changing the distance function of a collection once it is created is not supported currently.")
 
         self._client._modify(id=self.id, new_name=name, new_metadata=metadata)
         if name:
@@ -393,7 +409,12 @@ class Collection(BaseModel):
     def update(
         self,
         ids: OneOrMany[ID],
-        embeddings: Optional[OneOrMany[Embedding]] = None,
+        embeddings: Optional[
+            Union[
+                OneOrMany[Embedding],
+                OneOrMany[np.ndarray],
+            ]
+        ] = None,
         metadatas: Optional[OneOrMany[Metadata]] = None,
         documents: Optional[OneOrMany[Document]] = None,
         images: Optional[OneOrMany[Image]] = None,
@@ -439,7 +460,12 @@ class Collection(BaseModel):
     def upsert(
         self,
         ids: OneOrMany[ID],
-        embeddings: Optional[OneOrMany[Embedding]] = None,
+        embeddings: Optional[
+            Union[
+                OneOrMany[Embedding],
+                OneOrMany[np.ndarray],
+            ]
+        ] = None,
         metadatas: Optional[OneOrMany[Metadata]] = None,
         documents: Optional[OneOrMany[Document]] = None,
         images: Optional[OneOrMany[Image]] = None,
@@ -513,7 +539,12 @@ class Collection(BaseModel):
     def _validate_embedding_set(
         self,
         ids: OneOrMany[ID],
-        embeddings: Optional[OneOrMany[Embedding]],
+        embeddings: Optional[
+            Union[
+                OneOrMany[Embedding],
+                OneOrMany[np.ndarray],
+            ]
+        ],
         metadatas: Optional[OneOrMany[Metadata]],
         documents: Optional[OneOrMany[Document]],
         images: Optional[OneOrMany[Image]] = None,
@@ -529,7 +560,9 @@ class Collection(BaseModel):
     ]:
         valid_ids = validate_ids(maybe_cast_one_to_many_ids(ids))
         valid_embeddings = (
-            validate_embeddings(maybe_cast_one_to_many_embedding(embeddings))
+            validate_embeddings(
+                self._normalize_embeddings(maybe_cast_one_to_many_embedding(embeddings))
+            )
             if embeddings is not None
             else None
         )
@@ -595,6 +628,17 @@ class Collection(BaseModel):
             valid_images,
             valid_uris,
         )
+
+    @staticmethod
+    def _normalize_embeddings(
+        embeddings: Union[
+            OneOrMany[Embedding],
+            OneOrMany[np.ndarray],
+        ]
+    ) -> Embeddings:
+        if isinstance(embeddings, np.ndarray):
+            return embeddings.tolist()
+        return embeddings
 
     def _embed(self, input: Any) -> Embeddings:
         if self._embedding_function is None:
