@@ -66,9 +66,9 @@ class LocalLMISegment(VectorReader):
         self._total_elements_added = 0
         self._max_seq_id = self._consumer.min_seqid()
 
-        self._id_to_seq_id = {}
-        self._id_to_label = {}
-        self._label_to_id = {}
+        self._id_to_seq_id = {'None': -1}
+        self._id_to_label = {'None': 0}
+        self._label_to_id = { 0: 'None'}
 
         self._lock = ReadWriteLock()
         self._opentelemtry_client = system.require(OpenTelemetryClient)
