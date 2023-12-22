@@ -25,7 +25,7 @@ from chromadb.types import (
 )
 from chromadb.errors import InvalidDimensionException
 from chromadb.utils.read_write_lock import ReadWriteLock, ReadRWLock, WriteRWLock
-from chromadb.lmi.lmi import LMI
+from chromadb.li_index.search.lmi import LMI
 import logging
 
 logger = logging.getLogger(__name__)

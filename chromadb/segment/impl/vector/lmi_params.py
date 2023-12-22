@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Union, List
 import ast
 
 from chromadb.types import Metadata
-from chromadb.lmi.index.clustering import algorithms
+from chromadb.li_index.search.li.clustering import algorithms
 
 
 Validator = Callable[[Union[str, int, float]], bool]
