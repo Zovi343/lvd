@@ -183,7 +183,6 @@ class LocalLMISegment(VectorReader):
                     )
                 all_results.append(results)
 
-            # TODO: move bucket_order to the VectorQueryResult
             return all_results, bucket_order
 
     @override
