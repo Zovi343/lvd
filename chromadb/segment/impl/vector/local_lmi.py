@@ -212,7 +212,8 @@ class LocalLMISegment(VectorReader):
             epochs=self._params.epochs,
             learning_rate=self._params.lrs,
             model_types=self._params.model_types,
-            n_categories=self._params.n_categories
+            n_categories=self._params.n_categories,
+            kmeans=self._params.kmeans,
         )
         index.set_num_threads(self._params.num_threads)
 

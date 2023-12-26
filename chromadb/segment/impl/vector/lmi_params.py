@@ -17,6 +17,7 @@ param_validators: Dict[str, Validator] = {
     "lmi:model_types": lambda p: isinstance(p, str) and p != "",
     "lmi:lrs": lambda p: isinstance(p, str) and p != "",
     "lmi:n_categories": lambda p: isinstance(p, str) and p != "",
+    "lmi:kmeans": lambda p: isinstance(p, str) and p != "",
 }
 
 # Extra params used for persistent lmi
@@ -59,6 +60,7 @@ class LMIParams(Params):
         self.model_types = ast.literal_eval(metadata.get("lmi:model_types", "['MLP']"))
         self.lrs = ast.literal_eval(metadata.get("lmi:lrs", "[0.01]"))
         self.n_categories = ast.literal_eval(metadata.get("lmi:n_categories", "[2, 2]"))
+        self.kmeans = ast.literal_eval(metadata.get("lmi:kmeans", "None"))
         self.num_threads = int(
             metadata.get("lmi:num_threads", multiprocessing.cpu_count())
         )
