@@ -66,9 +66,9 @@ class LocalLMISegment(VectorReader):
         self._total_elements_added = 0
         self._max_seq_id = self._consumer.min_seqid()
 
-        self._id_to_seq_id = {'None': -1}
-        self._id_to_label = {'None': 0}
-        self._label_to_id = { 0: 'None'}
+        self._id_to_seq_id = {'-1': -1}
+        self._id_to_label = {'-1': 0}
+        self._label_to_id = { 0: '-1'}
 
         self._lock = ReadWriteLock()
         self._opentelemtry_client = system.require(OpenTelemetryClient)
@@ -142,8 +142,18 @@ class LocalLMISegment(VectorReader):
             k = size
 
         ids = query["allowed_ids"]
+
+        # CONSTRAINT MODIFICATION START
+        # TODO: this might not work with updates and deletes
+        use_bruteforce = False
+        filter_restrictiveness = len(ids) / self._total_elements_added
+        if filter_restrictiveness < 0.3:
+            use_bruteforce = True
+        # CONSTRAINT MODIFICATION END
+
+
         if ids is not None:
-            labels = [self._id_to_label[id] for id in ids if id in self._id_to_label]
+                filter_ids = [self._id_to_label[id] for id in ids if id in self._id_to_label]
 
         query_vectors = query["vectors"]
 
@@ -154,7 +164,9 @@ class LocalLMISegment(VectorReader):
                 n_buckets=n_buckets,
                 use_threshold=use_threshold,
                 constraint_weight=constraint_weight,
-                filter=labels if ids else None
+                filter=filter_ids if ids else None,
+                filter_restrictiveness=filter_restrictiveness,
+                use_bruteforce=use_bruteforce
             )
 
             # TODO: these casts are not correct, hnswlib returns np
