@@ -30,7 +30,7 @@ results = collection.query(
     where={"status": "read"},
     n_results=10,
     n_buckets=1,
-    use_threshold=True, # TODO: this causes problems, hotfix applied for now
+    bruteforce_threshold=0.0, # TODO: this causes problems, hotfix applied for now
 )
 
 print(results['ids'])

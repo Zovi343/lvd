@@ -568,7 +568,7 @@ class FastAPI(ServerAPI):
         where: Optional[Where] = {},
         where_document: Optional[WhereDocument] = {},
         include: Include = ["metadatas", "documents", "distances"],
-        use_threshold: bool = False,
+        bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0,
     ) -> QueryResult:
         """Gets the nearest neighbors of a single embedding"""
@@ -581,7 +581,7 @@ class FastAPI(ServerAPI):
                     "where": where,
                     "where_document": where_document,
                     "include": include,
-                    "use_threshold": use_threshold,
+                    "bruteforce_threshold": bruteforce_threshold,
                     "constraint_weight": constraint_weight
                 }
             ),

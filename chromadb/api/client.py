@@ -402,7 +402,7 @@ class Client(SharedSystemClient, ClientAPI):
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
         n_buckets: int = 1,
-        use_threshold: bool = False,
+        bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0,
     ) -> QueryResult:
         return self._server._query(
@@ -412,7 +412,7 @@ class Client(SharedSystemClient, ClientAPI):
             where=where,
             where_document=where_document,
             include=include,
-            use_threshold=use_threshold,
+            bruteforce_threshold=bruteforce_threshold,
             constraint_weight=constraint_weight,
         )
 

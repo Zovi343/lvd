@@ -130,7 +130,7 @@ class LocalLMISegment(VectorReader):
 
         k = query["k"]
         n_buckets = query["n_buckets"]
-        use_threshold = query["use_threshold"]
+        bruteforce_threshold = query["bruteforce_threshold"]
         constraint_weight = query["constraint_weight"]
 
         size = len(self._id_to_label)
@@ -147,10 +147,14 @@ class LocalLMISegment(VectorReader):
         # TODO: this might not work with updates and deletes
         use_bruteforce = False
         filter_restrictiveness = len(ids) / self._total_elements_added
-        if filter_restrictiveness < 0.3:
+        if filter_restrictiveness < bruteforce_threshold:
             use_bruteforce = True
-        # CONSTRAINT MODIFICATION END
+        elif constraint_weight < 0.0:
+            constraint_weight = 1 - filter_restrictiveness
 
+        print("filter_restrictiveness", filter_restrictiveness)
+        print("constraint_weight", constraint_weight)
+        # CONSTRAINT MODIFICATION END
 
         if ids is not None:
             filter_ids = [self._id_to_label[id] for id in ids if id in self._id_to_label]
@@ -162,7 +166,7 @@ class LocalLMISegment(VectorReader):
                 query_vectors,
                 k=k,
                 n_buckets=n_buckets,
-                use_threshold=use_threshold,
+                bruteforce_threshold=bruteforce_threshold,
                 constraint_weight=constraint_weight,
                 filter=filter_ids if ids else None,
                 filter_restrictiveness=filter_restrictiveness,

@@ -662,7 +662,7 @@ class SegmentAPI(ServerAPI):
         where_document: WhereDocument = {},
         include: Include = ["documents", "metadatas", "distances"],
         n_buckets: int = 1,
-        use_threshold: bool = False,
+        bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0,
     ) -> QueryResult:
         add_attributes_to_current_span(
@@ -700,7 +700,7 @@ class SegmentAPI(ServerAPI):
             include_embeddings="embeddings" in include,
             options=None,
             n_buckets=n_buckets,
-            use_threshold=use_threshold,
+            bruteforce_threshold=bruteforce_threshold,
             constraint_weight=constraint_weight,
         )
 

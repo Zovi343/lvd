@@ -267,7 +267,7 @@ class Collection(BaseModel):
         where_document: Optional[WhereDocument] = None,
         include: Include = ["metadatas", "documents", "distances"],
         n_buckets: int = 1,
-        use_threshold: bool = False,
+        bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0
     ) -> QueryResult:
         """Get the n_results nearest neighbor embeddings for provided query_embeddings or query_texts.
@@ -281,7 +281,7 @@ class Collection(BaseModel):
             where_document: A WhereDocument type dict used to filter by the documents. E.g. `{$contains: {"text": "hello"}}`. Optional.
             include: A list of what to include in the results. Can contain `"embeddings"`, `"metadatas"`, `"documents"`, `"distances"`. Ids are always included. Defaults to `["metadatas", "documents", "distances"]`. Optional.
             n_buckets: The number of buckets to search for each query_embedding or query_texts.
-            use_threshold: Whether to use the threshold optimization or not.
+            bruteforce_threshold: threshold for bruteforce.
 
         Returns:
             QueryResult: A QueryResult object containing the results.
@@ -363,7 +363,7 @@ class Collection(BaseModel):
             where_document=valid_where_document,
             include=include,
             n_buckets=n_buckets,
-            use_threshold=use_threshold,
+            bruteforce_threshold=bruteforce_threshold,
             constraint_weight=constraint_weight
         )
 

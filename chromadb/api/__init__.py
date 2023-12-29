@@ -407,7 +407,7 @@ class BaseAPI(ABC):
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
         n_buckets: int = 1,
-        use_threshold: bool = False,
+        bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0,
     ) -> QueryResult:
         """[Internal] Performs a nearest neighbors query on a collection specified by UUID.
