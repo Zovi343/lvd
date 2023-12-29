@@ -153,7 +153,7 @@ class LocalLMISegment(VectorReader):
 
 
         if ids is not None:
-                filter_ids = [self._id_to_label[id] for id in ids if id in self._id_to_label]
+            filter_ids = [self._id_to_label[id] for id in ids if id in self._id_to_label]
 
         query_vectors = query["vectors"]
 
