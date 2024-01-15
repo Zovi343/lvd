@@ -167,6 +167,9 @@ class QueryResult(TypedDict):
     metadatas: Optional[List[List[Metadata]]]
     distances: Optional[List[List[float]]]
     bucket_order: np.ndarray
+    bruteforce_used: bool
+    constraint_weight: float
+    filter_restrictiveness: float
 
 
 class IndexMetadata(TypedDict):

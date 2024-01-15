@@ -705,7 +705,7 @@ class SegmentAPI(ServerAPI):
         )
 
         vector_reader = self._manager.get_segment(collection_id, VectorReader)
-        results, bucket_order = vector_reader.query_vectors(query)
+        results, bucket_order, bruteforce_used, constraint_weight, filter_restrictiveness = vector_reader.query_vectors(query)
 
         ids: List[List[str]] = []
         distances: List[List[float]] = []
@@ -770,7 +770,10 @@ class SegmentAPI(ServerAPI):
             documents=documents if documents else None,
             uris=uris if uris else None,
             data=None,
-            bucket_order=bucket_order
+            bucket_order=bucket_order,
+            bruteforce_used=bruteforce_used,
+            constraint_weight=constraint_weight,
+            filter_restrictiveness=filter_restrictiveness,
         )
 
     @trace_method("SegmentAPI._peek", OpenTelemetryGranularity.OPERATION)

@@ -28,6 +28,8 @@ from chromadb.utils.read_write_lock import ReadWriteLock, ReadRWLock, WriteRWLoc
 from chromadb.li_index.search.lmi import LMI
 import logging
 
+from chromadb.li_index.search.attribtue_filtering.default_filtering import map_range
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_CAPACITY = 1000
@@ -124,7 +126,7 @@ class LocalLMISegment(VectorReader):
     @override
     def query_vectors(
         self, query: VectorQuery
-    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray):
+    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray, bool, float, float):
         if self._index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -146,14 +148,13 @@ class LocalLMISegment(VectorReader):
         # CONSTRAINT MODIFICATION START
         # TODO: this might not work with updates and deletes
         use_bruteforce = False
-        filter_restrictiveness = len(ids) / self._total_elements_added
-        if filter_restrictiveness < bruteforce_threshold:
-            use_bruteforce = True
-        elif constraint_weight < 0.0:
-            constraint_weight = 1 - filter_restrictiveness
-
-        print("filter_restrictiveness", filter_restrictiveness)
-        print("constraint_weight", constraint_weight)
+        filter_restrictiveness = 1.0
+        if ids is not None:
+            filter_restrictiveness = len(ids) / self._total_elements_added
+            if filter_restrictiveness < bruteforce_threshold:
+                use_bruteforce = True
+            elif constraint_weight < 0.0:
+                constraint_weight = map_range(1 - filter_restrictiveness, (0.0, 1.0), (0.25, 0.75))
         # CONSTRAINT MODIFICATION END
 
         if ids is not None:
@@ -168,7 +169,7 @@ class LocalLMISegment(VectorReader):
                 n_buckets=n_buckets,
                 bruteforce_threshold=bruteforce_threshold,
                 constraint_weight=constraint_weight,
-                filter=filter_ids if ids else None,
+                filter=filter_ids if ids is not None else None,
                 filter_restrictiveness=filter_restrictiveness,
                 use_bruteforce=use_bruteforce
             )
@@ -199,7 +200,7 @@ class LocalLMISegment(VectorReader):
                     )
                 all_results.append(results)
 
-            return all_results, bucket_order
+            return all_results, bucket_order, use_bruteforce, constraint_weight, filter_restrictiveness
 
     @override
     def max_seqid(self) -> SeqId:

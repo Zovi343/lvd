@@ -89,7 +89,7 @@ class VectorReader(SegmentImplementation):
     @abstractmethod
     def query_vectors(
         self, query: VectorQuery
-    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray):
+    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray, bool, float, float):
         """Given a vector query, return the top-k nearest neighbors for vector in the
         query."""
         pass

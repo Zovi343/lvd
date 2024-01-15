@@ -339,7 +339,7 @@ class PersistentLocalHnswSegment(LocalHnswSegment):
     @override
     def query_vectors(
         self, query: VectorQuery
-    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray):
+    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray, bool, float, float):
         if self._index is None and self._brute_force_index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -419,7 +419,7 @@ class PersistentLocalHnswSegment(LocalHnswSegment):
                             curr_bf_result[bf_pointer : bf_pointer + remaining]
                         )
                     results.append(curr_results)
-            return results, np.array([])
+            return results, np.array([]), False, 0.0, 1.0
 
     @trace_method(
         "PersistentLocalHnswSegment.reset_state", OpenTelemetryGranularity.ALL
