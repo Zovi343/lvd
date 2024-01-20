@@ -404,6 +404,7 @@ class Client(SharedSystemClient, ClientAPI):
         n_buckets: int = 1,
         bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0,
+        search_until_bucket_not_empty: bool = False,
     ) -> QueryResult:
         return self._server._query(
             collection_id=collection_id,
@@ -414,6 +415,7 @@ class Client(SharedSystemClient, ClientAPI):
             include=include,
             bruteforce_threshold=bruteforce_threshold,
             constraint_weight=constraint_weight,
+            search_until_bucket_not_empty=constraint_weight,
         )
 
     @override

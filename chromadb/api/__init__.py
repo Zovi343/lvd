@@ -409,6 +409,7 @@ class BaseAPI(ABC):
         n_buckets: int = 1,
         bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0,
+        search_until_bucket_not_empty: bool = False,
     ) -> QueryResult:
         """[Internal] Performs a nearest neighbors query on a collection specified by UUID.
 

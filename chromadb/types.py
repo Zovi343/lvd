@@ -128,6 +128,7 @@ class VectorQuery(TypedDict):
     n_buckets: int
     bruteforce_threshold: float
     constraint_weight: float
+    search_until_bucket_not_empty: bool
 
 
 

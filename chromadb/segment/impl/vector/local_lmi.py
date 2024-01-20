@@ -134,6 +134,7 @@ class LocalLMISegment(VectorReader):
         n_buckets = query["n_buckets"]
         bruteforce_threshold = query["bruteforce_threshold"]
         constraint_weight = query["constraint_weight"]
+        search_until_bucket_not_empty = query["search_until_bucket_not_empty"]
 
         size = len(self._id_to_label)
 
@@ -171,7 +172,8 @@ class LocalLMISegment(VectorReader):
                 constraint_weight=constraint_weight,
                 filter=filter_ids if ids is not None else None,
                 filter_restrictiveness=filter_restrictiveness,
-                use_bruteforce=use_bruteforce
+                use_bruteforce=use_bruteforce,
+                search_until_bucket_not_empty=search_until_bucket_not_empty
             )
 
             # TODO: these casts are not correct, hnswlib returns np
