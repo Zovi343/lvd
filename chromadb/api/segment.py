@@ -290,7 +290,7 @@ class SegmentAPI(ServerAPI):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> np.ndarray:
+    ) -> Dict[str, List[int]]:
         vector_reader = self._manager.get_segment(collection_id, VectorReader)
         return vector_reader.build_index()
 

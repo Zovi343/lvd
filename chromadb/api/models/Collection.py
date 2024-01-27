@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Tuple, Any, Union, Dict
+from typing import TYPE_CHECKING, Optional, Tuple, Any, Union, Dict, List
 
 import numpy as np
 from pydantic import BaseModel, PrivateAttr
@@ -101,11 +101,11 @@ class Collection(BaseModel):
         """
         return self._client._count(collection_id=self.id)
 
-    def build_index(self) -> Dict[str, np.ndarray]:
+    def build_index(self) -> Dict[str, List[int]]:
         """Builds the underlying vector index. If the index is already built it rebuilds it.
 
         Returns:
-            None
+            np.ndarray: which represents the bucket ids
         """
         return self._client._build_index(self.id)
 

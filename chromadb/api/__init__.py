@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Dict, List
 from uuid import UUID
 
 import numpy as np
@@ -222,7 +222,7 @@ class BaseAPI(ABC):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> np.ndarray:
+    ) -> Dict[str, List[int]]:
         """Builds index for collection. If it is already built rebuilds it.
         Args:
             collection_id: The UUID of the collection to add the embeddings to.
@@ -624,5 +624,5 @@ class ServerAPI(BaseAPI, AdminAPI, Component):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> np.ndarray:
+    ) -> Dict[str, List[int]]:
         pass

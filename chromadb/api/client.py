@@ -1,4 +1,4 @@
-from typing import ClassVar, Dict, Optional, Sequence
+from typing import ClassVar, Dict, Optional, Sequence, List
 from uuid import UUID
 import uuid
 
@@ -272,7 +272,7 @@ class Client(SharedSystemClient, ClientAPI):
     def _build_index(
         self,
         collection_id: UUID,
-    ) -> np.ndarray:
+    ) -> Dict[str, List[int]]:
         return self._server._build_index(
             collection_id=collection_id,
         )

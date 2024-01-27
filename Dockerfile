@@ -11,6 +11,8 @@ WORKDIR /install
 
 COPY ./requirements.txt requirements.txt
 
+RUN pip install torch --no-cache-dir --prefix="/install" --index-url https://download.pytorch.org/whl/cpu
+
 RUN pip install --no-cache-dir --upgrade --prefix="/install" -r requirements.txt
 
 FROM python:3.10-slim-bookworm as final

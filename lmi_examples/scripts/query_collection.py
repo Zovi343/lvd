@@ -3,7 +3,7 @@ import pandas as pd
 from chromadb.config import Settings
 
 # Load the CSV file
-csv_file_path = 'data/random_embeddings.csv'
+csv_file_path = '../data/random_embeddings.csv'
 data = pd.read_csv(csv_file_path)
 
 # Initialize the Chroma client

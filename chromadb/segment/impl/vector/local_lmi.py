@@ -213,15 +213,14 @@ class LocalLMISegment(VectorReader):
         return len(self._id_to_label)
 
     @override
-    def build_index(self) -> Dict[str, np.ndarray]:
+    def build_index(self) -> Dict[str, List[int]]:
         label_position_to_bucket = self._index.build_index()
         id_to_bucket = {}
         for label, bucket in enumerate(label_position_to_bucket):
             id = self._label_to_id[label + 1]
-            id_to_bucket[id] = bucket
+            id_to_bucket[id] = bucket.tolist()
 
         return id_to_bucket
-
 
     def _init_index(self, dimensionality: int) -> None:
         index = LMI()  # possible options are l2, cosine or ip

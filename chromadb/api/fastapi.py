@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, cast, Tuple
+from typing import Optional, cast, Tuple, Dict, List
 from typing import Sequence
 from uuid import UUID
 
@@ -568,6 +568,7 @@ class FastAPI(ServerAPI):
         where: Optional[Where] = {},
         where_document: Optional[WhereDocument] = {},
         include: Include = ["metadatas", "documents", "distances"],
+        n_buckets: int = 1,
         bruteforce_threshold: float = 0.0,
         constraint_weight: float = 0.0,
         search_until_bucket_not_empty: bool = False,
@@ -582,6 +583,7 @@ class FastAPI(ServerAPI):
                     "where": where,
                     "where_document": where_document,
                     "include": include,
+                    "n_buckets": n_buckets,
                     "bruteforce_threshold": bruteforce_threshold,
                     "constraint_weight": constraint_weight,
                     "search_until_bucket_not_empty": search_until_bucket_not_empty
@@ -601,6 +603,21 @@ class FastAPI(ServerAPI):
             uris=body.get("uris", None),
             data=None,
         )
+
+    @override
+    def _build_index(
+        self,
+        collection_id: UUID,
+    ) -> Dict[str, List[int]]:
+        resp = self._session.post(
+            self._api_url + "/collections/" + str(collection_id) + "/build_index",
+            data=json.dumps({}),
+        )
+
+        raise_chroma_error(resp)
+        body = resp.json()
+
+        return body
 
     @trace_method("FastAPI.reset", OpenTelemetryGranularity.ALL)
     @override
