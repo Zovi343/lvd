@@ -128,7 +128,7 @@ class LocalHnswSegment(VectorReader):
     @override
     def query_vectors(
         self, query: VectorQuery
-    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray, bool, float, float):
+    ) -> (Sequence[Sequence[VectorQueryResult]], List[List[int]], bool, float, float):
         if self._index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -184,7 +184,7 @@ class LocalHnswSegment(VectorReader):
                     )
                 all_results.append(results)
 
-            return all_results, np.array([]), False, 0.0, 1.0
+            return all_results, [], False, 0.0, 1.0
 
     @override
     def max_seqid(self) -> SeqId:

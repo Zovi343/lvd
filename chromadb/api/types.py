@@ -166,7 +166,7 @@ class QueryResult(TypedDict):
     data: Optional[List[Loadable]]
     metadatas: Optional[List[List[Metadata]]]
     distances: Optional[List[List[float]]]
-    bucket_order: np.ndarray
+    bucket_order: List[List[int]]
     bruteforce_used: bool
     constraint_weight: float
     filter_restrictiveness: float

@@ -1,5 +1,5 @@
 [project]
-name = "chromadb"
+name = "lvd"
 dynamic = ["version"]
 
 authors = [

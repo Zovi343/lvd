@@ -620,6 +620,10 @@ class FastAPI(chromadb.server.Server):
             query_embeddings=query.query_embeddings,
             n_results=query.n_results,
             include=query.include,
+            n_buckets=query.n_buckets,
+            bruteforce_threshold=query.bruteforce_threshold,
+            constraint_weight=query.constraint_weight,
+            search_until_bucket_not_empty=query.search_until_bucket_not_empty,
         )
         return nnresult
 

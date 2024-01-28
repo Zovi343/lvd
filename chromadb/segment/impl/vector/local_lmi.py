@@ -126,7 +126,7 @@ class LocalLMISegment(VectorReader):
     @override
     def query_vectors(
         self, query: VectorQuery
-    ) -> (Sequence[Sequence[VectorQueryResult]], np.ndarray, bool, float, float):
+    ) -> (Sequence[Sequence[VectorQueryResult]], List[List[int]], bool, float, float):
         if self._index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -175,6 +175,7 @@ class LocalLMISegment(VectorReader):
                 use_bruteforce=use_bruteforce,
                 search_until_bucket_not_empty=search_until_bucket_not_empty
             )
+            bucket_order = bucket_order.tolist()
 
             # TODO: these casts are not correct, hnswlib returns np
             # distances = cast(List[List[float]], distances)
@@ -189,9 +190,14 @@ class LocalLMISegment(VectorReader):
                     id = self._label_to_id[label]
                     seq_id = self._id_to_seq_id[id]
                     if query["include_embeddings"]:
-                        embedding = self._index.get_items([label])[0]
+                        # The embeddings are internally represented as pandas data frame
+                        # In order to work with FastAPI they need to be converted to list, so they can be used in json
+                        embedding = self._index.get_items([label])[0].tolist()
                     else:
                         embedding = None
+                    if distance.item() == float("inf"):
+                        # FastAPI does not support inf values, since they cannot be serialized to json
+                        distance = np.float32(100_000)
                     results.append(
                         VectorQueryResult(
                             id=id,
