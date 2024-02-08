@@ -25,6 +25,7 @@ RUN apt-get update --fix-missing && apt-get install -y --fix-missing \
 
 RUN mkdir /chroma
 WORKDIR /chroma
+RUN chmod 777 /chroma
 
 COPY --from=builder /install /usr/local
 COPY ./bin/docker_entrypoint.sh /docker_entrypoint.sh
