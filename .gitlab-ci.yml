@@ -11,6 +11,11 @@ build_image:
     - docker:dind  # Enable Docker-in-Docker service for building and pushing Docker images
   # Set up tasks to be executed before each job
   before_script:
+    # Initialize and update submodules to specific branches
+    - git submodule sync --recursive
+    - git submodule update --init --recursive
+    - git submodule foreach "git checkout constraint_search || :"
+
     # Log in to the GitLab Container Registry using CI/CD environment variables -- these are set up automatically
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
   # Specify the tasks to be executed in the job
