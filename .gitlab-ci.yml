@@ -12,6 +12,7 @@ build_image:
   # Set up tasks to be executed before each job
   before_script:
     # Initialize and update submodules to specific branches
+    - apk add --no-cache git
     - git submodule sync --recursive
     - git submodule update --init --recursive
     - git submodule foreach "git checkout constraint_search || :"
