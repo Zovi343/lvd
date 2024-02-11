@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import sys
@@ -10,7 +10,7 @@ sys.path.append('/storage/brno2/home/zovi/lvd')
 # sys.path.append('/storage/brno2/home/zovi/lvd/chromadb')
 
 
-# In[2]:
+# In[ ]:
 
 
 import json
@@ -24,6 +24,8 @@ import pandas as pd
 import json
 import time
 import os
+from datetime import datetime
+
 from matplotlib.patches import Patch
 
 
@@ -32,9 +34,17 @@ from matplotlib.patches import Patch
 # This notebooks allows for conducting basci experoments and visualizations on match keyword filtering dataset.
 # The notebook was orginally designed for [H&M](https://github.com/qdrant/ann-filtering-benchmark-datasets?tab=readme-ov-file) dataset encoded with Efficientnet for experiments. Original the data is from [Kaggle](https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations/data). 
 
+# In[ ]:
+
+
+# Get the current datetime
+now = datetime.now()
+experiment_timestamp = f"{now.minute}_{now.minute}_{now.hour}_{now.day}_{now.month}_{now.year}"
+
+
 # ## Load data
 
-# In[3]:
+# In[ ]:
 
 
 dataset_name = "random_keywords_10k"
@@ -53,13 +63,12 @@ with open(payloads_path, 'r') as file:
 # Load tests.jsonl as python list
 with open(tests_path, 'r') as file:
     tests = [json.loads(line) for line in file]
-
 (vectors.shape, len(payloads), len(tests))
 
 
 # ### Check whether filter have same format and preprocess dataset
 
-# In[4]:
+# In[ ]:
 
 
 def preprocess_payloads(payloads):
@@ -78,7 +87,7 @@ preprocess_payloads(payloads)
 
 # #### Metadata Example
 
-# In[5]:
+# In[ ]:
 
 
 print(json.dumps(payloads[0], indent=4, sort_keys=True))
@@ -86,7 +95,7 @@ print(json.dumps(payloads[0], indent=4, sort_keys=True))
 
 # #### Query Restrictivness Distribution
 
-# In[6]:
+# In[ ]:
 
 
 def apply_condition(payloads, condition):
@@ -111,7 +120,7 @@ def apply_condition(payloads, condition):
     return filtered_payloads, filtered_payloads_ids
 
 
-# In[7]:
+# In[ ]:
 
 
 ratios = []
@@ -122,7 +131,7 @@ for condition in [tests[i]['conditions'] for i in range(len(tests))]:
     ratios.append(ratio)
 
 
-# In[8]:
+# In[ ]:
 
 
 def visualize_ratios(ratios):
@@ -148,13 +157,13 @@ def visualize_ratios(ratios):
     plt.show()
 
 
-# In[9]:
+# In[ ]:
 
 
 visualize_ratios(ratios)
 
 
-# In[45]:
+# In[ ]:
 
 
 # get number closest to 0.2 (0.2 is chosen because it represents neither too restrictive nor too permissive condition)
@@ -165,7 +174,7 @@ _, least_restrictive_condition_ids = apply_condition(payloads, lest_restrictive_
 print('Condition with the lowest restrictivness: \n', lest_restrictive_condition)
 
 
-# In[57]:
+# In[ ]:
 
 
 filter_examples = {int(id_closest_to_target): least_restrictive_condition_ids} 
@@ -173,7 +182,7 @@ filter_examples = {int(id_closest_to_target): least_restrictive_condition_ids}
 
 # ## Setup Database
 
-# In[11]:
+# In[ ]:
 
 
 # Configuration from SISAP 2023 Indexing Challenge - LMI except n_categories
@@ -182,11 +191,11 @@ index_configuraiton = {
     "lmi:model_types": "['MLP-4']",
     "lmi:lrs": "[0.01]",
     "lmi:n_categories": "[20]",
-    "lmi:kmeans": "{'verbose': False, 'seed': 2023, 'min_points_per_centroid': 100}",
+    "lmi:kmeans": "{'verbose': False, 'seed': 2023}",
 }
 
 
-# In[12]:
+# In[ ]:
 
 
 client = chromadb.Client()
@@ -196,7 +205,6 @@ if collections:
     client.delete_collection(collections[0].name)
 
 collection_name = "synthetic_collection"
-# client.delete_collection(collection_name)
 collection = client.create_collection(
     name=collection_name,
     metadata=index_configuraiton
@@ -205,7 +213,7 @@ collection = client.create_collection(
 
 # ### Load data in batches
 
-# In[13]:
+# In[ ]:
 
 
 batch_size = 1000 # can large batch cause slow down?
@@ -220,13 +228,13 @@ for i in tqdm(range(0, dataset_size, batch_size), desc="Adding documents"):
     )
 
 
-# In[14]:
+# In[ ]:
 
 
 bucket_assignment = collection.build_index()
 
 
-# In[15]:
+# In[ ]:
 
 
 def plot_bucket_items(data, highlight_ids=None):
@@ -276,7 +284,7 @@ def plot_bucket_items(data, highlight_ids=None):
                                 textcoords='offset points')
 
 
-# In[16]:
+# In[ ]:
 
 
 data_buckets = pd.DataFrame([str(i) for i in range(vectors.shape[0])], columns=["id"])
@@ -284,13 +292,13 @@ data_buckets['bucket'] = data_buckets['id'].map(lambda x: list(bucket_assignment
 data_buckets['bucket_str'] = data_buckets['bucket'].apply(lambda x: str(x))
 
 
-# In[17]:
+# In[ ]:
 
 
 plot_bucket_items(data_buckets)
 
 
-# In[18]:
+# In[ ]:
 
 
 plot_bucket_items(data_buckets, highlight_ids=least_restrictive_condition_ids)
@@ -298,7 +306,7 @@ plot_bucket_items(data_buckets, highlight_ids=least_restrictive_condition_ids)
 
 # ## Query Database
 
-# In[19]:
+# In[ ]:
 
 
 print('\n ------- Query Example ------- \n')
@@ -310,7 +318,7 @@ print('Ground truth: ', tests[0]['closest_ids'])
 print('Closest scores: '+ str(tests[0]['closest_scores'][:5]).rstrip("]") + ", ... ]")
 
 
-# In[20]:
+# In[ ]:
 
 
 def convert_condition(input_condition):
@@ -337,7 +345,7 @@ def convert_condition(input_condition):
     return output_condition
 
 
-# In[21]:
+# In[ ]:
 
 
 def convert_condition_to_simple_dict(condition):
@@ -357,7 +365,7 @@ def calculate_precision(relevant_ids, retrieved_ids):
     return true_positives / len(retrieved_ids) if retrieved_ids else 0
 
 
-# In[22]:
+# In[ ]:
 
 
 def perform_queries(total_queries, constraint_weight, bruteforce_threshold, n_buckets=1, search_until_bucket_not_empty=False):
@@ -387,13 +395,13 @@ def perform_queries(total_queries, constraint_weight, bruteforce_threshold, n_bu
 
 # ### Constraint Parameter Visualization
 
-# In[23]:
+# In[ ]:
 
 
-queries_per_vis = 1000
+queries_per_vis = len(tests)
 
 
-# In[24]:
+# In[ ]:
 
 
 def percision_per_restrictiveness(vis_queries_filter_restrictiveness, vis_queries_precision_lmi, constrint_weight, bruteforce_threshold):
@@ -439,14 +447,14 @@ def percision_per_restrictiveness(vis_queries_filter_restrictiveness, vis_querie
     plt.show()
 
 
-# In[25]:
+# In[ ]:
 
 
 cw_test = {}
 cw_grid = [-1, 0.0, 0.25, 0.5,  0.75, 1.]
 
 
-# In[26]:
+# In[ ]:
 
 
 bruteforce_for_cws = 0.0
@@ -462,7 +470,7 @@ for cw in cw_grid:
     
     # I want to evaluate only queries that used LMI
     # With bruteforce_for_cws=0.0 this will always pass
-    assert len(vis_lmi_indexes) >= 100
+    # assert len(vis_lmi_indexes) >= 100
     # vis_lmi_indexes = vis_lmi_indexes[:100]
     
     vis_queries_precision = list((calculate_precision(tests[i]["closest_ids"], result['ids'][0]) for i, result in enumerate(vis_queries_evaluated)))
@@ -490,7 +498,7 @@ plt.title('Constraint weight')
 plt.show()
 
 
-# In[27]:
+# In[ ]:
 
 
 cw_test
@@ -498,19 +506,19 @@ cw_test
 
 # ### Bruteforce Threshold Parameter Visualization
 
-# In[28]:
+# In[ ]:
 
 
 hist_data = {}
 
 for bruteforce_param in [0, 1]:
-    vis_queries_evaluated = perform_queries(queries_per_vis, 0.5, bruteforce_param, 1, True)
+    vis_queries_evaluated = perform_queries(queries_per_vis, 0.5, bruteforce_param, 1, False)
 
     vis_lmi_indexes = []
     for i, result in enumerate(vis_queries_evaluated):
             vis_lmi_indexes.append(i)
 
-    assert len(vis_lmi_indexes) >= 100
+    # assert len(vis_lmi_indexes) >= 100
 
     vis_queries_wall_time = [result['wall_time'] for result in vis_queries_evaluated]
     vis_queries_wall_time = [vis_queries_wall_time[i] for i in vis_lmi_indexes]
@@ -570,7 +578,7 @@ plt.legend()
 plt.show()
 
 
-# In[29]:
+# In[ ]:
 
 
 hist_data
@@ -578,27 +586,32 @@ hist_data
 
 # #### Store Hyperparameters Visualization Results
 
-# In[58]:
+# In[ ]:
 
 
-root_dir = './'
+experiment_dir = f'./results/{dataset_name}/{experiment_timestamp}/'
+
+if not os.path.exists(experiment_dir):
+    os.makedirs(experiment_dir)
 
 for vis_name, vis_object in [
     ("cw_test", cw_test), 
-    ("brutefore_test", hist_data), 
+    ("bruteforce_test", hist_data), 
     ("ratios", ratios), 
     ("data_buckets", data_buckets.values.tolist()),
     ("filter_examples", filter_examples)
 ]:
     file_path = f"benchmark_{dataset_name}_{vis_name}.json"
     if not os.path.exists(file_path):
-        with open(root_dir + file_path, 'w') as file:
+        with open(experiment_dir + file_path, 'w') as file:
             json.dump(vis_object, file)
 
 
-# ### Benchmark Constraint Search
+# ### DEPRECATED: Benchmark Constraint Search
 
-# In[31]:
+# #### Note: this part is no longer used for benchmarking, since that is now handled in Vector DB Benchmar repository
+
+# In[ ]:
 
 
 total_queries = 1
@@ -611,7 +624,7 @@ wall_time = end - start
 
 # ### Evaluation
 
-# In[32]:
+# In[ ]:
 
 
 queries_precision = list((calculate_precision(tests[i]["closest_ids"], result['ids'][0]) for i, result in enumerate(queries_results)))
@@ -622,7 +635,7 @@ for i, result in enumerate(queries_results):
 lmi_used_num = len(lmi_queries_indexes)
 
 
-# In[33]:
+# In[ ]:
 
 
 print('Number of times LMI was used', len(lmi_queries_indexes))
@@ -634,7 +647,7 @@ if len(lmi_precisions) > 0:
     print('lmi_median_precision', statistics.median(lmi_precisions))
 
 
-# In[34]:
+# In[ ]:
 
 
 # print(queries_evaluated)
@@ -642,7 +655,7 @@ indexes = [i for i, val in enumerate(queries_precision) if val == 0.0]
 print("indexes with zero precision: ", indexes)
 
 
-# In[35]:
+# In[ ]:
 
 
 avg_precision = sum(queries_precision) / len(queries_precision)
@@ -651,7 +664,7 @@ print("Median precision: ", statistics.median(queries_precision))
 print("Wall Time ", wall_time)
 
 
-# In[36]:
+# In[ ]:
 
 
 #file_path = f"./benchmark_{dataset_name}_{total_queries}q.json"
@@ -668,7 +681,7 @@ print("Wall Time ", wall_time)
 chroma_results = {'chroma_lmi': {}}
 
 
-# In[37]:
+# In[ ]:
 
 
 chroma_results['chroma_lmi']['avg_precision'] = avg_precision
@@ -676,13 +689,13 @@ chroma_results['chroma_lmi']['median_precision'] = statistics.median(queries_pre
 chroma_results['chroma_lmi']['wall time'] = wall_time
 
 
-# In[38]:
+# In[ ]:
 
 
 chroma_results
 
 
-# In[39]:
+# In[ ]:
 
 
 # Setting up the color palette from seaborn specifically for nice purple and green
@@ -698,7 +711,7 @@ plt.title('Index Usage')
 plt.show()
 
 
-# In[40]:
+# In[ ]:
 
 
 plt.figure(figsize=(10, 6))
@@ -723,7 +736,7 @@ plt.legend()
 plt.show()
 
 
-# In[40]:
+# In[ ]:
 
 
 
