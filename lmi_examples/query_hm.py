@@ -39,7 +39,7 @@ from matplotlib.patches import Patch
 
 # Get the current datetime
 now = datetime.now()
-experiment_timestamp = f"{now.minute}_{now.minute}_{now.hour}_{now.day}_{now.month}_{now.year}"
+experiment_timestamp = f"{now.second}_{now.minute}_{now.hour}_{now.day}_{now.month}_{now.year}"
 
 
 # ## Load data
@@ -123,12 +123,12 @@ def apply_condition(payloads, condition):
 # In[ ]:
 
 
-ratios = []
-
-for condition in [tests[i]['conditions'] for i in range(len(tests))]:
-    filtered_payloads, _ = apply_condition(payloads, condition)
-    ratio = len(filtered_payloads) / len(payloads)
-    ratios.append(ratio)
+# ratios = []
+# 
+# for condition in [tests[i]['conditions'] for i in range(len(tests))]:
+#     filtered_payloads, _ = apply_condition(payloads, condition)
+#     ratio = len(filtered_payloads) / len(payloads)
+#     ratios.append(ratio)
 
 
 # In[ ]:
@@ -160,24 +160,24 @@ def visualize_ratios(ratios):
 # In[ ]:
 
 
-visualize_ratios(ratios)
+# visualize_ratios(ratios)
 
 
 # In[ ]:
 
 
 # get number closest to 0.2 (0.2 is chosen because it represents neither too restrictive nor too permissive condition)
-target = 0.2
-id_closest_to_target = np.argmin(np.abs(np.array(ratios) - target))
-lest_restrictive_condition = tests[id_closest_to_target]['conditions']
-_, least_restrictive_condition_ids = apply_condition(payloads, lest_restrictive_condition)
-print('Condition with the lowest restrictivness: \n', lest_restrictive_condition)
+# target = 0.2
+# id_closest_to_target = np.argmin(np.abs(np.array(ratios) - target))
+# lest_restrictive_condition = tests[id_closest_to_target]['conditions']
+# _, least_restrictive_condition_ids = apply_condition(payloads, lest_restrictive_condition)
+# print('Condition with the lowest restrictivness: \n', lest_restrictive_condition)
 
 
 # In[ ]:
 
 
-filter_examples = {int(id_closest_to_target): least_restrictive_condition_ids} 
+# filter_examples = {int(id_closest_to_target): least_restrictive_condition_ids} 
 
 
 # ## Setup Database
@@ -190,7 +190,7 @@ index_configuraiton = {
     "lmi:epochs": "[200]",
     "lmi:model_types": "['MLP-4']",
     "lmi:lrs": "[0.01]",
-    "lmi:n_categories": "[20]",
+    "lmi:n_categories": "[120]",
     "lmi:kmeans": "{'verbose': False, 'seed': 2023}",
 }
 
@@ -216,7 +216,7 @@ collection = client.create_collection(
 # In[ ]:
 
 
-batch_size = 1000 # can large batch cause slow down?
+batch_size = 10000
 dataset_size = vectors.shape[0]
 for i in tqdm(range(0, dataset_size, batch_size), desc="Adding documents"):
     collection.add(
@@ -295,13 +295,13 @@ data_buckets['bucket_str'] = data_buckets['bucket'].apply(lambda x: str(x))
 # In[ ]:
 
 
-plot_bucket_items(data_buckets)
+# plot_bucket_items(data_buckets)
 
 
 # In[ ]:
 
 
-plot_bucket_items(data_buckets, highlight_ids=least_restrictive_condition_ids)
+# plot_bucket_items(data_buckets, highlight_ids=least_restrictive_condition_ids)
 
 
 # ## Query Database
@@ -398,7 +398,7 @@ def perform_queries(total_queries, constraint_weight, bruteforce_threshold, n_bu
 # In[ ]:
 
 
-queries_per_vis = len(tests)
+queries_per_vis = 1000
 
 
 # In[ ]:
@@ -479,23 +479,23 @@ for cw in cw_grid:
     vis_queries_precision_lmi = [vis_queries_precision[i] for i in vis_lmi_indexes]
     vis_queries_filter_restrictiveness = [vis_queries_filter_restrictiveness[i] for i in vis_lmi_indexes]
     
-    percision_per_restrictiveness(vis_queries_filter_restrictiveness, vis_queries_precision_lmi, cw, 0.0)
+    # percision_per_restrictiveness(vis_queries_filter_restrictiveness, vis_queries_precision_lmi, cw, 0.0)
     cw_test[f"cw: {cw}"] = sum(vis_queries_precision_lmi)/len(vis_queries_precision_lmi)
     
-# Extracting keys and values
-keys = list(cw_test.keys())
-values = list(cw_test.values())
-
-# Creating the bar chart
-plt.bar(keys, values, color=['blue', 'green', 'purple', 'orange'])
-
-# Adding labels and title
-plt.xlabel('Hyperparameter')
-plt.ylabel('Average Precision')
-plt.title('Constraint weight')
-
-# Displaying the plot
-plt.show()
+# # Extracting keys and values
+# keys = list(cw_test.keys())
+# values = list(cw_test.values())
+# 
+# # Creating the bar chart
+# plt.bar(keys, values, color=['blue', 'green', 'purple', 'orange'])
+# 
+# # Adding labels and title
+# plt.xlabel('Hyperparameter')
+# plt.ylabel('Average Precision')
+# plt.title('Constraint weight')
+# 
+# # Displaying the plot
+# plt.show()
 
 
 # In[ ]:
@@ -548,34 +548,34 @@ for bruteforce_param in [0, 1]:
     # Store histogram data for overlay plot
     hist_data[bruteforce_param] = [(bin_edges[:-1] + 0.05).tolist(), bin_medians.tolist()]
 
-    # Original figures within the loop
-    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-    axs[0].bar(bin_edges[:-1], bin_medians, width=0.1, align='edge', edgecolor='black')
-    axs[0].set_xlabel('Filter Restrictiveness')
-    axs[0].set_ylabel('Median Wall Time')
-    axs[0].set_title(f'Median Wall Time by Filter Restrictiveness for Bruteforce Threshold {bruteforce_param}')
+    # # Original figures within the loop
+    # fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+    # axs[0].bar(bin_edges[:-1], bin_medians, width=0.1, align='edge', edgecolor='black')
+    # axs[0].set_xlabel('Filter Restrictiveness')
+    # axs[0].set_ylabel('Median Wall Time')
+    # axs[0].set_title(f'Median Wall Time by Filter Restrictiveness for Bruteforce Threshold {bruteforce_param}')
+    # 
+    # axs[1].scatter(data_wall_time_per_restrictiveness['Filter Restrictiveness'], data_wall_time_per_restrictiveness['Wall Time'])
+    # axs[1].set_xlabel('Filter Restrictiveness')
+    # axs[1].set_ylabel('Wall Time (seconds)')
+    # axs[1].set_title(f'Scatter Plot of Filter Restrictiveness vs Wall Time for Bruteforce Threshold {bruteforce_param}')
+    # plt.tight_layout()
+    # plt.show()
 
-    axs[1].scatter(data_wall_time_per_restrictiveness['Filter Restrictiveness'], data_wall_time_per_restrictiveness['Wall Time'])
-    axs[1].set_xlabel('Filter Restrictiveness')
-    axs[1].set_ylabel('Wall Time (seconds)')
-    axs[1].set_title(f'Scatter Plot of Filter Restrictiveness vs Wall Time for Bruteforce Threshold {bruteforce_param}')
-    plt.tight_layout()
-    plt.show()
-
-# Overlayed line charts after the loop
-plt.figure(figsize=(8, 6))
-
-# Line chart for bruteforce_param=0 with a distinct color
-plt.plot(hist_data[0][0], hist_data[0][1], color='red', marker='o', linestyle='-', label='Bruteforce Threshold 0')
-
-# Line chart for bruteforce_param=1 with a different distinct color
-plt.plot(hist_data[1][0], hist_data[1][1], color='green', marker='o', linestyle='-', label='Bruteforce Threshold 1')
-
-plt.xlabel('Filter Restrictiveness')
-plt.ylabel('Median Wall Time')
-plt.title('Overlayed Line Charts of Median Wall Time by Filter Restrictiveness')
-plt.legend()
-plt.show()
+# # Overlayed line charts after the loop
+# plt.figure(figsize=(8, 6))
+# 
+# # Line chart for bruteforce_param=0 with a distinct color
+# plt.plot(hist_data[0][0], hist_data[0][1], color='red', marker='o', linestyle='-', label='Bruteforce Threshold 0')
+# 
+# # Line chart for bruteforce_param=1 with a different distinct color
+# plt.plot(hist_data[1][0], hist_data[1][1], color='green', marker='o', linestyle='-', label='Bruteforce Threshold 1')
+# 
+# plt.xlabel('Filter Restrictiveness')
+# plt.ylabel('Median Wall Time')
+# plt.title('Overlayed Line Charts of Median Wall Time by Filter Restrictiveness')
+# plt.legend()
+# plt.show()
 
 
 # In[ ]:
@@ -597,9 +597,9 @@ if not os.path.exists(experiment_dir):
 for vis_name, vis_object in [
     ("cw_test", cw_test), 
     ("bruteforce_test", hist_data), 
-    ("ratios", ratios), 
+    # ("ratios", ratios), 
     ("data_buckets", data_buckets.values.tolist()),
-    ("filter_examples", filter_examples)
+    # ("filter_examples", filter_examples)
 ]:
     file_path = f"benchmark_{dataset_name}_{vis_name}.json"
     if not os.path.exists(file_path):
@@ -614,12 +614,12 @@ for vis_name, vis_object in [
 # In[ ]:
 
 
-total_queries = 1
-
-start = time.time()
-queries_results = perform_queries(total_queries, -1, 0.1, 1)
-end = time.time()
-wall_time = end - start
+# total_queries = 1
+# 
+# start = time.time()
+# queries_results = perform_queries(total_queries, -1, 0.1, 1)
+# end = time.time()
+# wall_time = end - start
 
 
 # ### Evaluation
@@ -627,41 +627,41 @@ wall_time = end - start
 # In[ ]:
 
 
-queries_precision = list((calculate_precision(tests[i]["closest_ids"], result['ids'][0]) for i, result in enumerate(queries_results)))
-lmi_queries_indexes = []
-for i, result in enumerate(queries_results):
-    if not result['bruteforce_used']:
-        lmi_queries_indexes.append(i)
-lmi_used_num = len(lmi_queries_indexes)
+# queries_precision = list((calculate_precision(tests[i]["closest_ids"], result['ids'][0]) for i, result in enumerate(queries_results)))
+# lmi_queries_indexes = []
+# for i, result in enumerate(queries_results):
+#     if not result['bruteforce_used']:
+#         lmi_queries_indexes.append(i)
+# lmi_used_num = len(lmi_queries_indexes)
 
 
 # In[ ]:
 
 
-print('Number of times LMI was used', len(lmi_queries_indexes))
-bruteforce_used = total_queries - lmi_used_num
-
-lmi_precisions = [queries_precision[i] for i in lmi_queries_indexes]
-if len(lmi_precisions) > 0:
-    print('lmi_average_precision', sum(lmi_precisions) / len(lmi_precisions))
-    print('lmi_median_precision', statistics.median(lmi_precisions))
-
-
-# In[ ]:
-
-
-# print(queries_evaluated)
-indexes = [i for i, val in enumerate(queries_precision) if val == 0.0]
-print("indexes with zero precision: ", indexes)
+# print('Number of times LMI was used', len(lmi_queries_indexes))
+# bruteforce_used = total_queries - lmi_used_num
+# 
+# lmi_precisions = [queries_precision[i] for i in lmi_queries_indexes]
+# if len(lmi_precisions) > 0:
+#     print('lmi_average_precision', sum(lmi_precisions) / len(lmi_precisions))
+#     print('lmi_median_precision', statistics.median(lmi_precisions))
 
 
 # In[ ]:
 
 
-avg_precision = sum(queries_precision) / len(queries_precision)
-print("Average precision: ", avg_precision)
-print("Median precision: ", statistics.median(queries_precision))
-print("Wall Time ", wall_time)
+# # print(queries_evaluated)
+# indexes = [i for i, val in enumerate(queries_precision) if val == 0.0]
+# print("indexes with zero precision: ", indexes)
+
+
+# In[ ]:
+
+
+# avg_precision = sum(queries_precision) / len(queries_precision)
+# print("Average precision: ", avg_precision)
+# print("Median precision: ", statistics.median(queries_precision))
+# print("Wall Time ", wall_time)
 
 
 # In[ ]:
@@ -678,62 +678,62 @@ print("Wall Time ", wall_time)
 # # Now, load the file (which is guaranteed to exist)
 # with open(file_path, 'r') as file:
 #     chroma_results = json.load(file)
-chroma_results = {'chroma_lmi': {}}
+# chroma_results = {'chroma_lmi': {}}
 
 
 # In[ ]:
 
 
-chroma_results['chroma_lmi']['avg_precision'] = avg_precision
-chroma_results['chroma_lmi']['median_precision'] = statistics.median(queries_precision)
-chroma_results['chroma_lmi']['wall time'] = wall_time
+# chroma_results['chroma_lmi']['avg_precision'] = avg_precision
+# chroma_results['chroma_lmi']['median_precision'] = statistics.median(queries_precision)
+# chroma_results['chroma_lmi']['wall time'] = wall_time
 
 
 # In[ ]:
 
 
-chroma_results
+# chroma_results
 
 
 # In[ ]:
 
 
-# Setting up the color palette from seaborn specifically for nice purple and green
-colors = sns.color_palette("husl", 8)  # Using a color palette with more colors
-
-# Creating the pie chart
-plt.figure(figsize=(8,8))
-plt.pie([lmi_used_num, bruteforce_used], labels=["LMI", "Brute Force"], 
-        colors=[colors[0], colors[3]],  # Selecting nice colors from the palette (Purple and Green)
-        autopct='%1.1f%%', startangle=140)
-
-plt.title('Index Usage')
-plt.show()
+# # Setting up the color palette from seaborn specifically for nice purple and green
+# colors = sns.color_palette("husl", 8)  # Using a color palette with more colors
+# 
+# # Creating the pie chart
+# plt.figure(figsize=(8,8))
+# plt.pie([lmi_used_num, bruteforce_used], labels=["LMI", "Brute Force"], 
+#         colors=[colors[0], colors[3]],  # Selecting nice colors from the palette (Purple and Green)
+#         autopct='%1.1f%%', startangle=140)
+# 
+# plt.title('Index Usage')
+# plt.show()
 
 
 # In[ ]:
 
 
-plt.figure(figsize=(10, 6))
-sns.set_theme(style="whitegrid")
-
-# Plot each point with round, filled markers and ensure x-axis is from 0 to 1, y-axis starts at 0
-for key, value in chroma_results.items():
-    color = 'blue' if key == 'chroma_hnsw' else 'purple'
-    plt.scatter(value['avg_precision'], value['wall time'], label=key, color=color, s=200)  # s is the size of marker
-
-# Labeling the axes and title
-plt.xlabel('Average Precision')
-plt.ylabel('Seconds')
-plt.title('100 sequentially run queries')
-plt.xlim(0, 1)  # Ensuring x-axis covers 0 to 1 range
-if chroma_results.get('chroma_hnsw', False):
-    plt.ylim(0, max(chroma_results['chroma_hnsw']['wall time'], chroma_results['chroma_lmi']['wall time']) + 10)  # Ensuring y-axis starts at 0
-else:
-    plt.ylim(0, max(0, chroma_results['chroma_lmi']['wall time']) + 10)
-plt.legend()
-
-plt.show()
+# plt.figure(figsize=(10, 6))
+# sns.set_theme(style="whitegrid")
+# 
+# # Plot each point with round, filled markers and ensure x-axis is from 0 to 1, y-axis starts at 0
+# for key, value in chroma_results.items():
+#     color = 'blue' if key == 'chroma_hnsw' else 'purple'
+#     plt.scatter(value['avg_precision'], value['wall time'], label=key, color=color, s=200)  # s is the size of marker
+# 
+# # Labeling the axes and title
+# plt.xlabel('Average Precision')
+# plt.ylabel('Seconds')
+# plt.title('100 sequentially run queries')
+# plt.xlim(0, 1)  # Ensuring x-axis covers 0 to 1 range
+# if chroma_results.get('chroma_hnsw', False):
+#     plt.ylim(0, max(chroma_results['chroma_hnsw']['wall time'], chroma_results['chroma_lmi']['wall time']) + 10)  # Ensuring y-axis starts at 0
+# else:
+#     plt.ylim(0, max(0, chroma_results['chroma_lmi']['wall time']) + 10)
+# plt.legend()
+# 
+# plt.show()
 
 
 # In[ ]:
