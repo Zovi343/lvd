@@ -25,6 +25,7 @@ import json
 import time
 import os
 from datetime import datetime
+import logging
 
 from matplotlib.patches import Patch
 
@@ -64,6 +65,16 @@ with open(payloads_path, 'r') as file:
 with open(tests_path, 'r') as file:
     tests = [json.loads(line) for line in file]
 (vectors.shape, len(payloads), len(tests))
+
+
+# ### Logging
+
+# In[ ]:
+
+
+log_filename = f"./log_file_{dataset_name}_{experiment_timestamp}.txt"
+logging.basicConfig(filename=log_filename, level=logging.INFO, 
+                    format='%(asctime)s:%(levelname)s:%(message)s')
 
 
 # ### Check whether filter have same format and preprocess dataset
@@ -190,7 +201,7 @@ index_configuraiton = {
     "lmi:epochs": "[200]",
     "lmi:model_types": "['MLP-4']",
     "lmi:lrs": "[0.01]",
-    "lmi:n_categories": "[120]",
+    "lmi:n_categories": "[20]",
     "lmi:kmeans": "{'verbose': False, 'seed': 2023}",
 }
 
@@ -210,14 +221,27 @@ collection = client.create_collection(
     metadata=index_configuraiton
 )
 
+logging.info("Collection Created.")
+
 
 # ### Load data in batches
 
 # In[ ]:
 
 
-batch_size = 10000
+# start = time.time()
+# queries_results = perform_queries(total_queries, -1, 0.1, 1)
+# end = time.time()
+# wall_time = end - start
+
+
+# In[ ]:
+
+
+batch_size = 5000
+logging.info(f"Start dataset upload with batch size {batch_size}.")
 dataset_size = vectors.shape[0]
+upload_start = time.time()
 for i in tqdm(range(0, dataset_size, batch_size), desc="Adding documents"):
     collection.add(
         embeddings=vectors[i: i + batch_size].tolist(),
@@ -226,12 +250,20 @@ for i in tqdm(range(0, dataset_size, batch_size), desc="Adding documents"):
             str(i) for i in range(i, min(i + batch_size, dataset_size))
         ]
     )
+upload_end = time.time()
+upload_wall_time = upload_end - upload_start
+logging.info(f"Dataset upload done with wall time {upload_wall_time} in seconds .")
 
 
 # In[ ]:
 
 
+logging.info("Start build index.")
+build_start = time.time()
 bucket_assignment = collection.build_index()
+build_end = time.time()
+build_wall_time = build_end - build_start
+logging.info(f"Index build done with wall time {build_wall_time}.")
 
 
 # In[ ]:
@@ -394,6 +426,12 @@ def perform_queries(total_queries, constraint_weight, bruteforce_threshold, n_bu
 
 
 # ### Constraint Parameter Visualization
+
+# In[ ]:
+
+
+logging.info("Start parameter benchmark.")
+
 
 # In[ ]:
 
@@ -584,7 +622,19 @@ for bruteforce_param in [0, 1]:
 hist_data
 
 
+# In[ ]:
+
+
+logging.info("Parameter benchmark done.")
+
+
 # #### Store Hyperparameters Visualization Results
+
+# In[ ]:
+
+
+logging.info("Start store results.")
+
 
 # In[ ]:
 
@@ -605,6 +655,12 @@ for vis_name, vis_object in [
     if not os.path.exists(file_path):
         with open(experiment_dir + file_path, 'w') as file:
             json.dump(vis_object, file)
+
+
+# In[ ]:
+
+
+logging.info("Store results done.")
 
 
 # ### DEPRECATED: Benchmark Constraint Search
