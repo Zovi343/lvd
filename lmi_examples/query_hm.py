@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import sys
@@ -10,7 +10,7 @@ sys.path.append('/storage/brno2/home/zovi/lvd')
 # sys.path.append('/storage/brno2/home/zovi/lvd/chromadb')
 
 
-# In[ ]:
+# In[2]:
 
 
 import json
@@ -33,7 +33,7 @@ from matplotlib.patches import Patch
 # This notebooks allows for conducting basci experoments and visualizations on match keyword filtering dataset.
 # The notebook was orginally designed for [H&M](https://github.com/qdrant/ann-filtering-benchmark-datasets?tab=readme-ov-file) dataset encoded with Efficientnet for experiments. Original the data is from [Kaggle](https://www.kaggle.com/competitions/h-and-m-personalized-fashion-recommendations/data). 
 
-# In[ ]:
+# In[3]:
 
 
 # Get the current datetime
@@ -43,7 +43,7 @@ experiment_timestamp = f"{now.second}_{now.minute}_{now.hour}_{now.day}_{now.mon
 
 # ## Load data
 
-# In[ ]:
+# In[4]:
 
 
 dataset_name = "random_keywords_10k"
@@ -67,7 +67,7 @@ with open(tests_path, 'r') as file:
 
 # ### Logging
 
-# In[ ]:
+# In[5]:
 
 
 log_filename = f"./log_file_{dataset_name}_{experiment_timestamp}.txt"
@@ -77,7 +77,7 @@ logging.basicConfig(filename=log_filename, level=logging.INFO,
 
 # ### Check whether filter have same format and preprocess dataset
 
-# In[ ]:
+# In[6]:
 
 
 def preprocess_payloads(payloads):
@@ -96,7 +96,7 @@ preprocess_payloads(payloads)
 
 # #### Metadata Example
 
-# In[ ]:
+# In[7]:
 
 
 print(json.dumps(payloads[0], indent=4, sort_keys=True))
@@ -104,7 +104,7 @@ print(json.dumps(payloads[0], indent=4, sort_keys=True))
 
 # #### Query Restrictivness Distribution
 
-# In[ ]:
+# In[8]:
 
 
 def apply_condition(payloads, condition):
@@ -129,7 +129,7 @@ def apply_condition(payloads, condition):
     return filtered_payloads, filtered_payloads_ids
 
 
-# In[ ]:
+# In[9]:
 
 
 # ratios = []
@@ -140,7 +140,7 @@ def apply_condition(payloads, condition):
 #     ratios.append(ratio)
 
 
-# In[ ]:
+# In[10]:
 
 
 def visualize_ratios(ratios):
@@ -166,13 +166,13 @@ def visualize_ratios(ratios):
     plt.show()
 
 
-# In[ ]:
+# In[11]:
 
 
 # visualize_ratios(ratios)
 
 
-# In[ ]:
+# In[12]:
 
 
 # get number closest to 0.2 (0.2 is chosen because it represents neither too restrictive nor too permissive condition)
@@ -183,7 +183,7 @@ def visualize_ratios(ratios):
 # print('Condition with the lowest restrictivness: \n', lest_restrictive_condition)
 
 
-# In[ ]:
+# In[13]:
 
 
 # filter_examples = {int(id_closest_to_target): least_restrictive_condition_ids} 
@@ -191,7 +191,7 @@ def visualize_ratios(ratios):
 
 # ## Setup Database
 
-# In[ ]:
+# In[14]:
 
 
 # Configuration from SISAP 2023 Indexing Challenge - LMI except n_categories
@@ -204,7 +204,7 @@ index_configuraiton = {
 }
 
 
-# In[ ]:
+# In[15]:
 
 
 client = chromadb.Client()
@@ -224,7 +224,7 @@ logging.info("Collection Created.")
 
 # ### Load data in batches
 
-# In[ ]:
+# In[16]:
 
 
 # start = time.time()
@@ -233,7 +233,7 @@ logging.info("Collection Created.")
 # wall_time = end - start
 
 
-# In[ ]:
+# In[17]:
 
 
 batch_size = 5000
@@ -241,6 +241,7 @@ logging.info(f"Start dataset upload with batch size {batch_size}.")
 dataset_size = vectors.shape[0]
 upload_start = time.time()
 total_batch_iteration = dataset_size // batch_size
+batch_counter = 1
 for i in range(0, dataset_size, batch_size):
     collection.add(
         embeddings=vectors[i: i + batch_size].tolist(),
@@ -249,13 +250,15 @@ for i in range(0, dataset_size, batch_size):
             str(i) for i in range(i, min(i + batch_size, dataset_size))
         ]
     )
-    logging.info(f"Added {i}-th batch out of .")
+    logging.info(f"Added {batch_counter}-th batch out of {total_batch_iteration}.")
+    batch_counter += 1
+    
 upload_end = time.time()
 upload_wall_time = upload_end - upload_start
 logging.info(f"Dataset upload done with wall time {upload_wall_time} in seconds .")
 
 
-# In[ ]:
+# In[18]:
 
 
 logging.info("Start build index.")
@@ -266,7 +269,7 @@ build_wall_time = build_end - build_start
 logging.info(f"Index build done with wall time {build_wall_time}.")
 
 
-# In[ ]:
+# In[19]:
 
 
 def plot_bucket_items(data, highlight_ids=None):
@@ -316,7 +319,7 @@ def plot_bucket_items(data, highlight_ids=None):
                                 textcoords='offset points')
 
 
-# In[ ]:
+# In[20]:
 
 
 data_buckets = pd.DataFrame([str(i) for i in range(vectors.shape[0])], columns=["id"])
@@ -324,13 +327,13 @@ data_buckets['bucket'] = data_buckets['id'].map(lambda x: list(bucket_assignment
 data_buckets['bucket_str'] = data_buckets['bucket'].apply(lambda x: str(x))
 
 
-# In[ ]:
+# In[21]:
 
 
 # plot_bucket_items(data_buckets)
 
 
-# In[ ]:
+# In[22]:
 
 
 # plot_bucket_items(data_buckets, highlight_ids=least_restrictive_condition_ids)
@@ -338,7 +341,7 @@ data_buckets['bucket_str'] = data_buckets['bucket'].apply(lambda x: str(x))
 
 # ## Query Database
 
-# In[ ]:
+# In[23]:
 
 
 print('\n ------- Query Example ------- \n')
@@ -350,7 +353,7 @@ print('Ground truth: ', tests[0]['closest_ids'])
 print('Closest scores: '+ str(tests[0]['closest_scores'][:5]).rstrip("]") + ", ... ]")
 
 
-# In[ ]:
+# In[24]:
 
 
 def convert_condition(input_condition):
@@ -377,7 +380,7 @@ def convert_condition(input_condition):
     return output_condition
 
 
-# In[ ]:
+# In[25]:
 
 
 def convert_condition_to_simple_dict(condition):
@@ -397,7 +400,7 @@ def calculate_precision(relevant_ids, retrieved_ids):
     return true_positives / len(retrieved_ids) if retrieved_ids else 0
 
 
-# In[ ]:
+# In[26]:
 
 
 def perform_queries(total_queries, constraint_weight, bruteforce_threshold, n_buckets=1, search_until_bucket_not_empty=False):
@@ -427,19 +430,19 @@ def perform_queries(total_queries, constraint_weight, bruteforce_threshold, n_bu
 
 # ### Constraint Parameter Visualization
 
-# In[ ]:
+# In[27]:
 
 
 logging.info("Start parameter benchmark.")
 
 
-# In[ ]:
+# In[28]:
 
 
 queries_per_vis = 1000
 
 
-# In[ ]:
+# In[29]:
 
 
 def percision_per_restrictiveness(vis_queries_filter_restrictiveness, vis_queries_precision_lmi, constrint_weight, bruteforce_threshold):
@@ -485,14 +488,14 @@ def percision_per_restrictiveness(vis_queries_filter_restrictiveness, vis_querie
     plt.show()
 
 
-# In[ ]:
+# In[30]:
 
 
 cw_test = {}
 cw_grid = [-1, 0.0, 0.25, 0.5,  0.75, 1.]
 
 
-# In[ ]:
+# In[31]:
 
 
 bruteforce_for_cws = 0.0
@@ -536,7 +539,7 @@ for cw in cw_grid:
 # plt.show()
 
 
-# In[ ]:
+# In[32]:
 
 
 cw_test
@@ -544,7 +547,7 @@ cw_test
 
 # ### Bruteforce Threshold Parameter Visualization
 
-# In[ ]:
+# In[33]:
 
 
 hist_data = {}
@@ -616,13 +619,13 @@ for bruteforce_param in [0, 1]:
 # plt.show()
 
 
-# In[ ]:
+# In[34]:
 
 
 hist_data
 
 
-# In[ ]:
+# In[35]:
 
 
 logging.info("Parameter benchmark done.")
@@ -630,13 +633,13 @@ logging.info("Parameter benchmark done.")
 
 # #### Store Hyperparameters Visualization Results
 
-# In[ ]:
+# In[36]:
 
 
 logging.info("Start store results.")
 
 
-# In[ ]:
+# In[37]:
 
 
 experiment_dir = f'./results/{dataset_name}/{experiment_timestamp}/'
@@ -657,7 +660,7 @@ for vis_name, vis_object in [
             json.dump(vis_object, file)
 
 
-# In[ ]:
+# In[38]:
 
 
 logging.info("Store results done.")
@@ -667,7 +670,7 @@ logging.info("Store results done.")
 
 # #### Note: this part is no longer used for benchmarking, since that is now handled in Vector DB Benchmar repository
 
-# In[ ]:
+# In[39]:
 
 
 # total_queries = 1
@@ -680,7 +683,7 @@ logging.info("Store results done.")
 
 # ### Evaluation
 
-# In[ ]:
+# In[40]:
 
 
 # queries_precision = list((calculate_precision(tests[i]["closest_ids"], result['ids'][0]) for i, result in enumerate(queries_results)))
@@ -691,7 +694,7 @@ logging.info("Store results done.")
 # lmi_used_num = len(lmi_queries_indexes)
 
 
-# In[ ]:
+# In[41]:
 
 
 # print('Number of times LMI was used', len(lmi_queries_indexes))
@@ -703,7 +706,7 @@ logging.info("Store results done.")
 #     print('lmi_median_precision', statistics.median(lmi_precisions))
 
 
-# In[ ]:
+# In[42]:
 
 
 # # print(queries_evaluated)
@@ -711,7 +714,7 @@ logging.info("Store results done.")
 # print("indexes with zero precision: ", indexes)
 
 
-# In[ ]:
+# In[43]:
 
 
 # avg_precision = sum(queries_precision) / len(queries_precision)
@@ -720,7 +723,7 @@ logging.info("Store results done.")
 # print("Wall Time ", wall_time)
 
 
-# In[ ]:
+# In[44]:
 
 
 #file_path = f"./benchmark_{dataset_name}_{total_queries}q.json"
@@ -737,7 +740,7 @@ logging.info("Store results done.")
 # chroma_results = {'chroma_lmi': {}}
 
 
-# In[ ]:
+# In[45]:
 
 
 # chroma_results['chroma_lmi']['avg_precision'] = avg_precision
@@ -745,13 +748,13 @@ logging.info("Store results done.")
 # chroma_results['chroma_lmi']['wall time'] = wall_time
 
 
-# In[ ]:
+# In[46]:
 
 
 # chroma_results
 
 
-# In[ ]:
+# In[47]:
 
 
 # # Setting up the color palette from seaborn specifically for nice purple and green
@@ -767,7 +770,7 @@ logging.info("Store results done.")
 # plt.show()
 
 
-# In[ ]:
+# In[48]:
 
 
 # plt.figure(figsize=(10, 6))
@@ -792,7 +795,7 @@ logging.info("Store results done.")
 # plt.show()
 
 
-# In[ ]:
+# In[48]:
 
 
 
