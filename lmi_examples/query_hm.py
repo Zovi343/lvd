@@ -15,8 +15,6 @@ sys.path.append('/storage/brno2/home/zovi/lvd')
 
 import json
 import numpy as np
-from tqdm.notebook import tqdm
-import statistics
 import matplotlib.pyplot as plt
 import chromadb
 import seaborn as sns
@@ -242,7 +240,8 @@ batch_size = 5000
 logging.info(f"Start dataset upload with batch size {batch_size}.")
 dataset_size = vectors.shape[0]
 upload_start = time.time()
-for i in tqdm(range(0, dataset_size, batch_size), desc="Adding documents"):
+total_batch_iteration = dataset_size // batch_size
+for i in range(0, dataset_size, batch_size):
     collection.add(
         embeddings=vectors[i: i + batch_size].tolist(),
         metadatas=payloads[i: i + batch_size],
@@ -250,6 +249,7 @@ for i in tqdm(range(0, dataset_size, batch_size), desc="Adding documents"):
             str(i) for i in range(i, min(i + batch_size, dataset_size))
         ]
     )
+    logging.info(f"Added {i}-th batch out of .")
 upload_end = time.time()
 upload_wall_time = upload_end - upload_start
 logging.info(f"Dataset upload done with wall time {upload_wall_time} in seconds .")
