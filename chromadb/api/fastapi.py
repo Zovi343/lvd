@@ -602,6 +602,10 @@ class FastAPI(ServerAPI):
             documents=body.get("documents", None),
             uris=body.get("uris", None),
             data=None,
+            bucket_order=body.get("bucket_order", None),
+            bruteforce_used=body.get("bruteforce_used", None),
+            constraint_weight=body.get("constraint_weight", None),
+            filter_restrictiveness=body.get("filter_restrictiveness", None),
         )
 
     @override
