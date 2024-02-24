@@ -47,7 +47,7 @@ experiment_timestamp = f"{now.second}_{now.minute}_{now.hour}_{now.day}_{now.mon
 
 
 dataset_name = "random_keywords_10k"
-kube_dir = "pvc"
+kube_dir = "/pvc"
 dir_path = f"{kube_dir}/data/{dataset_name}/"
 vectors_path = dir_path + "vectors.npy"
 payloads_path = dir_path + "payloads.jsonl"
