@@ -46,8 +46,9 @@ experiment_timestamp = f"{now.second}_{now.minute}_{now.hour}_{now.day}_{now.mon
 # In[ ]:
 
 
-dataset_name = "hnm"
-dir_path = f"data/{dataset_name}/"
+dataset_name = "random_keywords_10k"
+kube_dir = "pvc"
+dir_path = f"{kube_dir}/data/{dataset_name}/"
 vectors_path = dir_path + "vectors.npy"
 payloads_path = dir_path + "payloads.jsonl"
 tests_path = dir_path + "tests.jsonl"
@@ -71,7 +72,7 @@ with open(tests_path, 'r') as file:
 
 
 log_filename = f"./log_file_{dataset_name}_{experiment_timestamp}.txt"
-logging.basicConfig(filename=log_filename, level=logging.INFO, 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, 
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
 
@@ -207,7 +208,7 @@ index_configuraiton = {
 # In[ ]:
 
 
-client = chromadb.HttpClient(host="localhost", port=5000)
+client = chromadb.HttpClient(host="lvd")
 
 collections = client.list_collections()
 if collections:
@@ -685,7 +686,7 @@ logging.info("Start store results.")
 # In[ ]:
 
 
-experiment_dir = f'./results/{dataset_name}/{experiment_timestamp}/'
+experiment_dir = f'{kube_dir}/results/{dataset_name}/{experiment_timestamp}/'
 
 if not os.path.exists(experiment_dir):
     os.makedirs(experiment_dir)
