@@ -13,3 +13,4 @@ types-protobuf
 types-requests==2.30.0.0
 tqdm
 matplotlib
+seaborn
