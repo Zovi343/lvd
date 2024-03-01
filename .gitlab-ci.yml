@@ -15,7 +15,7 @@ build_image:
     - apk add --no-cache git
     - git submodule sync --recursive
     - git submodule update --init --recursive
-    - git submodule foreach "git checkout constraint_search || :"
+#    - git submodule foreach "git checkout constraint_search || :"
 
     # Log in to the GitLab Container Registry using CI/CD environment variables -- these are set up automatically
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
