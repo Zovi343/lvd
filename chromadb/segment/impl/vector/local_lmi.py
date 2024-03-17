@@ -113,6 +113,7 @@ class LocalLMISegment(VectorReader):
         results = []
         if self._index is not None:
             vectors = cast(Sequence[Vector], self._index.get_items(labels))
+            vectors = vectors.tolist()
 
             for label, vector in zip(labels, vectors):
                 id = self._label_to_id[label]
@@ -192,7 +193,7 @@ class LocalLMISegment(VectorReader):
                     if query["include_embeddings"]:
                         # The embeddings are internally represented as pandas data frame
                         # In order to work with FastAPI they need to be converted to list, so they can be used in json
-                        embedding = self._index.get_items([label])[0].tolist()
+                        embedding = self._index.get_items([label]).tolist()[0]
                     else:
                         embedding = None
                     if distance.item() == float("inf"):

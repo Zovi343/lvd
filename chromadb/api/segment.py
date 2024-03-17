@@ -651,6 +651,18 @@ class SegmentAPI(ServerAPI):
         metadata_segment = self._manager.get_segment(collection_id, MetadataReader)
         return metadata_segment.count()
 
+    # Hybrid Helpers Functions
+    # src: https://safjan.com/implementing-rank-fusion-in-python/
+    def result_func(self, ranking, q):
+        return ranking[q]
+
+    def rank_func(self, results, d):
+        return results.index(d) + 1  # adding 1 because ranks start from 1
+
+    def reciprocal_rank_fusion(self, queries, d, k, result_func, rank_func, rankings):
+        return sum([1.0 / (k + rank_func(result_func(rankings, q), d)) if d in result_func(rankings, q) else 0 for q in
+                    queries])
+
     @trace_method("SegmentAPI._query", OpenTelemetryGranularity.OPERATION)
     @override
     def _query(
@@ -673,6 +685,10 @@ class SegmentAPI(ServerAPI):
                 "where": str(where),
             }
         )
+        hybrid_search = False
+        hybrid_vector_ids = []
+        hybrid_result_by_id = {}
+
         where = validate_where(where) if where is not None and len(where) > 0 else where
         where_document = (
             validate_where_document(where_document)
@@ -693,6 +709,25 @@ class SegmentAPI(ServerAPI):
                 where=where, where_document=where_document
             )
             allowed_ids = [r["id"] for r in records]
+            if where_document:
+                if "$hybrid" in where_document.keys():
+                    hybrid_vector_ids = allowed_ids[:n_results]
+                    hybrid_result_by_id = {r["id"]: r for r in records}
+                    records = records[:n_results]
+
+                    hybrid_search = True
+                    allowed_ids = None
+
+                    if len(records) > 0:
+                        if "embeddings" in include:
+                            hybrid_records_ids = [r["id"] for r in records]
+                            vector_segment = self._manager.get_segment(collection_id, VectorReader)
+                            hybrid_vectors = vector_segment.get_vectors(ids=hybrid_records_ids)
+                            hybrid_embeddings_by_id = {r["id"]: r["embedding"] for r in hybrid_vectors}
+
+                            for hybrid_id, hybrid_embedding in hybrid_embeddings_by_id.items():
+                                hybrid_result_by_id[hybrid_id]["embedding"] = hybrid_embedding
+                                hybrid_result_by_id[hybrid_id]["distance"] = -1
 
         query = t.VectorQuery(
             vectors=query_embeddings,
@@ -715,6 +750,33 @@ class SegmentAPI(ServerAPI):
         documents: List[List[Document]] = []
         uris: List[List[URI]] = []
         metadatas: List[List[t.Metadata]] = []
+
+        if hybrid_search:
+            for index, result in enumerate(results):
+                result_ids = [r["id"] for r in result]
+                vector_result_by_id = {r["id"]: r for r in result}
+
+                rankings = {
+                    'hybrid_ranking': hybrid_vector_ids,
+                    'vector_ranking': result_ids
+                }
+
+                k = 5
+                queries = list(rankings.keys())
+
+                combined_ids = set(doc_id for query_results in rankings.values() for doc_id in query_results)
+                id_scores = {
+                    doc: self.reciprocal_rank_fusion(queries, doc, k, self.result_func, self.rank_func, rankings)
+                    for doc in combined_ids}
+                sorted_ids = sorted(id_scores.items(), key=lambda x: x[1], reverse=True)
+                sorted_ids = [x[0] for x in sorted_ids] # Take just ids without the scores
+                top_sorted_ids = sorted_ids[:n_results]
+                results[index] = []
+                for vector_id in top_sorted_ids:
+                    if vector_id in vector_result_by_id.keys():
+                        results[index].append(vector_result_by_id[vector_id])
+                    else:
+                        results[index].append(hybrid_result_by_id[vector_id])
 
         for result in results:
             ids.append([r["id"] for r in result])
