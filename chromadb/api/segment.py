@@ -718,6 +718,9 @@ class SegmentAPI(ServerAPI):
                     hybrid_search = True
                     allowed_ids = None
 
+                    for record_id in hybrid_result_by_id.keys():
+                        hybrid_result_by_id[record_id]["distance"] = -1
+
                     if len(records) > 0:
                         if "embeddings" in include:
                             hybrid_records_ids = [r["id"] for r in records]
@@ -727,7 +730,6 @@ class SegmentAPI(ServerAPI):
 
                             for hybrid_id, hybrid_embedding in hybrid_embeddings_by_id.items():
                                 hybrid_result_by_id[hybrid_id]["embedding"] = hybrid_embedding
-                                hybrid_result_by_id[hybrid_id]["distance"] = -1
 
         query = t.VectorQuery(
             vectors=query_embeddings,

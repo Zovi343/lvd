@@ -1,0 +1,101 @@
+x,y,cluster,id,kmeans_cluster,document
+73.86209106483484,0.32376393528931086,purple,id1,3,The field of programming is at the forefront of technological innovation and offers endless opportunities for exploration.
+50.688845098467404,21.37193989211989,blue,id2,2,"The landscape of career development is constantly evolving, demanding adaptability and continuous learning."
+1.1915734830653537,68.37776070812373,red,id3,1,The nature's beauty is breathtaking and offers a tranquil retreat from the hustle of daily life.
+-1.2014531840902771,66.96050313373144,red,id4,1,"Walking through the river, one can't help but feel a deep connection to the earth."
+68.7351812428699,-0.710942667072161,purple,id5,3,Understanding cybersecurity is crucial for solving complex problems and advancing our digital world.
+72.2267857508063,-3.485158686812232,purple,id6,3,Understanding machine learning is crucial for solving complex problems and advancing our digital world.
+19.724916570242566,52.58997494708238,green,id7,0,Spending time traveling is a wonderful way to recharge and enjoy life's simple pleasures.
+19.84897116236989,50.52852548131708,green,id8,0,"Whether it's hiking, engaging in hobbies is essential for a balanced lifestyle."
+51.838900603088675,21.820292925693693,blue,id9,2,Advancing in your industry trends requires dedication and a willingness to embrace new challenges.
+3.192975396828862,68.72247588103947,red,id10,1,"Walking through the wildlife, one can't help but feel a deep connection to the earth."
+20.10628255767723,52.107607175561185,green,id11,0,Spending time hiking is a wonderful way to recharge and enjoy life's simple pleasures.
+69.26609381360062,5.178494108473092,purple,id12,3,Understanding data analysis is crucial for solving complex problems and advancing our digital world.
+20.366338125662242,52.47166052703286,green,id13,0,Spending time traveling is a wonderful way to recharge and enjoy life's simple pleasures.
+52.33922206262906,20.78735486882529,blue,id14,2,"The landscape of industry trends is constantly evolving, demanding adaptability and continuous learning."
+19.228814546970064,43.86843142788847,green,id15,0,"Whether it's traveling, engaging in hobbies is essential for a balanced lifestyle."
+70.76972321664141,5.086342329560276,purple,id16,3,The field of machine learning is at the forefront of technological innovation and offers endless opportunities for exploration.
+71.01808368342294,0.40674607441406047,purple,id17,3,Understanding data analysis is crucial for solving complex problems and advancing our digital world.
+48.78171205948217,17.857406698765374,blue,id18,2,Advancing in your work-life balance requires dedication and a willingness to embrace new challenges.
+-0.20431968258937952,67.7174147491271,red,id19,1,The nature's beauty is breathtaking and offers a tranquil retreat from the hustle of daily life.
+72.05951292670912,-0.3774009501267846,purple,id20,3,The field of data analysis is at the forefront of technological innovation and offers endless opportunities for exploration.
+47.62611307280922,18.9187233194069,blue,id21,2,Advancing in your work-life balance requires dedication and a willingness to embrace new challenges.
+-2.070995751004091,69.14735924198085,red,id22,1,The river is breathtaking and offers a tranquil retreat from the hustle of daily life.
+0.7415758906342457,70.91050751997244,red,id23,1,"Walking through the nature's beauty, one can't help but feel a deep connection to the earth."
+52.1253091222483,20.525769311380603,blue,id24,2,"The landscape of professional growth is constantly evolving, demanding adaptability and continuous learning."
+18.84634378362597,49.16799009633335,green,id25,0,"Whether it's cooking, engaging in hobbies is essential for a balanced lifestyle."
+51.493637702539274,23.6736093125306,blue,id26,2,Advancing in your industry trends requires dedication and a willingness to embrace new challenges.
+71.05186895821973,-1.678643177599436,purple,id27,3,The field of software development is at the forefront of technological innovation and offers endless opportunities for exploration.
+20.674234474474478,48.885639006700146,green,id28,0,Spending time hiking is a wonderful way to recharge and enjoy life's simple pleasures.
+1.543498324600638,71.48304696708868,red,id29,1,The river is breathtaking and offers a tranquil retreat from the hustle of daily life.
+48.43528289062214,17.567468619202373,blue,id30,2,Advancing in your industry trends requires dedication and a willingness to embrace new challenges.
+-0.6010693423457099,72.01678240293691,red,id31,1,The nature's beauty is breathtaking and offers a tranquil retreat from the hustle of daily life.
+52.03092982336448,21.254771605113874,blue,id32,2,"The landscape of career development is constantly evolving, demanding adaptability and continuous learning."
+19.4163997878543,50.05998490683184,green,id33,0,"Whether it's gardening, engaging in hobbies is essential for a balanced lifestyle."
+18.68296947260014,53.68889742387919,green,id34,0,"Whether it's cooking, engaging in hobbies is essential for a balanced lifestyle."
+71.57971107770823,3.458556516196555,purple,id35,3,The field of programming is at the forefront of technological innovation and offers endless opportunities for exploration.
+68.62416155028761,0.5227011758312057,purple,id36,3,The field of cybersecurity is at the forefront of technological innovation and offers endless opportunities for exploration.
+47.089019567359166,18.342558664169317,blue,id37,2,"The landscape of career development is constantly evolving, demanding adaptability and continuous learning."
+70.91435234803245,1.638163077276469,purple,id38,3,The field of machine learning is at the forefront of technological innovation and offers endless opportunities for exploration.
+51.90067558207676,21.468658662593903,blue,id39,2,"The landscape of job opportunities is constantly evolving, demanding adaptability and continuous learning."
+18.31863477721892,49.66898120234813,green,id40,0,"Whether it's hiking, engaging in hobbies is essential for a balanced lifestyle."
+68.43557111864698,-0.6817749414308283,purple,id41,3,Understanding data analysis is crucial for solving complex problems and advancing our digital world.
+68.74862718873703,0.5357685458645158,purple,id42,3,Understanding machine learning is crucial for solving complex problems and advancing our digital world.
+-2.7605160266777817,70.60380563214929,red,id43,1,The forest is breathtaking and offers a tranquil retreat from the hustle of daily life.
+-2.067198645604794,66.99564495379609,red,id44,1,"Walking through the wildlife, one can't help but feel a deep connection to the earth."
+21.52551170001896,50.734591719481955,green,id45,0,Spending time traveling is a wonderful way to recharge and enjoy life's simple pleasures.
+21.457108923897454,52.729639162855726,green,id46,0,"Whether it's cooking, engaging in hobbies is essential for a balanced lifestyle."
+0.6812375757147228,67.49299729523749,red,id47,1,"Walking through the river, one can't help but feel a deep connection to the earth."
+45.82702836898596,17.84726218759883,blue,id48,2,Advancing in your work-life balance requires dedication and a willingness to embrace new challenges.
+50.76958618012861,21.2822263991801,blue,id49,2,"The landscape of job opportunities is constantly evolving, demanding adaptability and continuous learning."
+65.8411538868571,0.38257980635707406,purple,id50,3,The field of software development is at the forefront of technological innovation and offers endless opportunities for exploration.
+53.697621776218966,18.60305950573477,blue,id51,2,"The landscape of career development is constantly evolving, demanding adaptability and continuous learning."
+72.59334533932002,0.5430247420079917,purple,id52,3,The field of programming is at the forefront of technological innovation and offers endless opportunities for exploration.
+51.06113881505375,18.82714117118831,blue,id53,2,"The landscape of work-life balance is constantly evolving, demanding adaptability and continuous learning."
+66.64233429361097,0.49349904276568285,purple,id54,3,The field of cybersecurity is at the forefront of technological innovation and offers endless opportunities for exploration.
+52.85329495890537,22.135395299573197,blue,id55,2,"The landscape of professional growth is constantly evolving, demanding adaptability and continuous learning."
+-2.7591867996116592,69.59109036549518,red,id56,1,The river is breathtaking and offers a tranquil retreat from the hustle of daily life.
+73.05966895055569,-1.1127245691295375,purple,id57,3,The field of software development is at the forefront of technological innovation and offers endless opportunities for exploration.
+52.11300005218179,18.532163512124995,blue,id58,2,Advancing in your professional growth requires dedication and a willingness to embrace new challenges.
+68.15794454264154,0.2754880699683775,purple,id59,3,The field of cybersecurity is at the forefront of technological innovation and offers endless opportunities for exploration.
+24.797751966274213,44.83379027973604,green,id60,0,"Whether it's cooking, engaging in hobbies is essential for a balanced lifestyle."
+22.622017687580847,46.84104498415278,green,id61,0,"Whether it's reading, engaging in hobbies is essential for a balanced lifestyle."
+15.432559766373252,49.99835599377004,green,id62,0,Spending time traveling is a wonderful way to recharge and enjoy life's simple pleasures.
+68.69218516117662,0.38963795266867685,purple,id63,3,The field of software development is at the forefront of technological innovation and offers endless opportunities for exploration.
+69.38032743630214,-1.1934986594221573,purple,id64,3,The field of cybersecurity is at the forefront of technological innovation and offers endless opportunities for exploration.
+48.72301071389809,20.3008227763545,blue,id65,2,"The landscape of work-life balance is constantly evolving, demanding adaptability and continuous learning."
+20.10226325145908,49.52387850485692,green,id66,0,Spending time cooking is a wonderful way to recharge and enjoy life's simple pleasures.
+50.79981651658508,21.786915986757784,blue,id67,2,"The landscape of work-life balance is constantly evolving, demanding adaptability and continuous learning."
+23.6878432502303,49.556876091758554,green,id68,0,Spending time cooking is a wonderful way to recharge and enjoy life's simple pleasures.
+21.041177951560925,49.61145322519138,green,id69,0,"Whether it's reading, engaging in hobbies is essential for a balanced lifestyle."
+5.308814521897864,72.88121038704806,red,id70,1,"Walking through the nature's beauty, one can't help but feel a deep connection to the earth."
+-1.1157469937986901,71.85415915243124,red,id71,1,The river is breathtaking and offers a tranquil retreat from the hustle of daily life.
+-2.2660944957504885,71.31319389025899,red,id72,1,The river is breathtaking and offers a tranquil retreat from the hustle of daily life.
+48.18126462349588,17.024179005974872,blue,id73,2,Advancing in your professional growth requires dedication and a willingness to embrace new challenges.
+4.1946583764674905,71.78512391402613,red,id74,1,The wildlife is breathtaking and offers a tranquil retreat from the hustle of daily life.
+18.263191853187667,51.20869251864878,green,id75,0,"Whether it's traveling, engaging in hobbies is essential for a balanced lifestyle."
+1.4233470605256915,69.35103008781665,red,id76,1,"Walking through the river, one can't help but feel a deep connection to the earth."
+19.58398203567312,50.80260822031735,green,id77,0,"Whether it's gardening, engaging in hobbies is essential for a balanced lifestyle."
+70.25562031865807,-2.1322846392785255,purple,id78,3,The field of cybersecurity is at the forefront of technological innovation and offers endless opportunities for exploration.
+0.19780454074692477,63.75693569376727,red,id79,1,The nature's beauty is breathtaking and offers a tranquil retreat from the hustle of daily life.
+67.92814218100284,-2.1065849563113397,purple,id80,3,Understanding machine learning is crucial for solving complex problems and advancing our digital world.
+17.209281272935556,51.41683136342456,green,id81,0,Spending time gardening is a wonderful way to recharge and enjoy life's simple pleasures.
+70.88833797939408,-1.3640472376794175,purple,id82,3,The field of software development is at the forefront of technological innovation and offers endless opportunities for exploration.
+70.17447049111296,-4.3868651324769585,purple,id83,3,The field of software development is at the forefront of technological innovation and offers endless opportunities for exploration.
+24.8636430932916,50.84519748042353,green,id84,0,"Whether it's reading, engaging in hobbies is essential for a balanced lifestyle."
+-2.05872279068717,68.95645159139026,red,id85,1,The nature's beauty is breathtaking and offers a tranquil retreat from the hustle of daily life.
+2.6495254676662423,70.87857342221724,red,id86,1,"Walking through the forest, one can't help but feel a deep connection to the earth."
+22.685387572268933,47.08658318905957,green,id87,0,"Whether it's cooking, engaging in hobbies is essential for a balanced lifestyle."
+-2.1755246971279614,66.42584106236751,red,id88,1,The mountain is breathtaking and offers a tranquil retreat from the hustle of daily life.
+53.2104688913241,21.33432962630544,blue,id89,2,"The landscape of job opportunities is constantly evolving, demanding adaptability and continuous learning."
+48.8453728340569,18.36010505538588,blue,id90,2,"The landscape of job opportunities is constantly evolving, demanding adaptability and continuous learning."
+15.863179243100857,50.90547748367349,green,id91,0,Spending time cooking is a wonderful way to recharge and enjoy life's simple pleasures.
+1.2842498887966611,69.63764893821589,red,id92,1,The nature's beauty is breathtaking and offers a tranquil retreat from the hustle of daily life.
+48.66363889705727,20.113929945910243,blue,id93,2,"The landscape of work-life balance is constantly evolving, demanding adaptability and continuous learning."
+21.938714768666514,50.07307357449835,green,id94,0,Spending time reading is a wonderful way to recharge and enjoy life's simple pleasures.
+-2.1530432907981356,69.34863608459656,red,id95,1,The mountain is breathtaking and offers a tranquil retreat from the hustle of daily life.
+-2.0037412773197607,70.47250158806051,red,id96,1,The nature's beauty is breathtaking and offers a tranquil retreat from the hustle of daily life.
+67.78506302998464,0.36241167940170216,purple,id97,3,Understanding programming is crucial for solving complex problems and advancing our digital world.
+-0.8455151352792392,69.80151165069917,red,id98,1,The forest is breathtaking and offers a tranquil retreat from the hustle of daily life.
+49.832064525614975,20.254576317647253,blue,id99,2,Advancing in your industry trends requires dedication and a willingness to embrace new challenges.
+48.98496204536502,19.450997102895315,blue,id100,2,"The landscape of career development is constantly evolving, demanding adaptability and continuous learning."

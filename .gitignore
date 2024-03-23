@@ -33,4 +33,5 @@ terraform.tfstate
 .hypothesis/
 .idea
 /lmi_examples/data/*
+/lmi_examples/results/*
 
