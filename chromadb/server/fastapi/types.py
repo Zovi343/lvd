@@ -35,7 +35,7 @@ class QueryEmbedding(BaseModel):
     n_results: int = 10
     include: Include = ["metadatas", "documents", "distances"]
     n_buckets: int = 1
-    bruteforce_threshold: float = 0.0
+    bruteforce_threshold: float = None
     constraint_weight: float = 0.0
     search_until_bucket_not_empty: bool = False
 

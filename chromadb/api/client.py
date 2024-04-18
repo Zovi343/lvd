@@ -402,7 +402,7 @@ class Client(SharedSystemClient, ClientAPI):
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
         n_buckets: int = 1,
-        bruteforce_threshold: float = 0.0,
+        bruteforce_threshold: float = None,
         constraint_weight: float = 0.0,
         search_until_bucket_not_empty: bool = False,
     ) -> QueryResult:

@@ -22,3 +22,5 @@ CREATE TABLE max_seq_id (
 );
 
 CREATE VIRTUAL TABLE embedding_fulltext USING fts5(id, string_value);
+
+CREATE INDEX idx_key_string_value ON embedding_metadata(key, string_value);

@@ -153,6 +153,13 @@ class LocalLMISegment(VectorReader):
         filter_restrictiveness = 1.0
         if ids is not None:
             filter_restrictiveness = len(ids) / self._total_elements_added
+
+            if bruteforce_threshold is None:
+                # Bruteforce optimization based on the ScANN algorithm
+                # https://github.com/google-research/google-research/blob/master/scann/docs/algorithms.md#rules-of-thumb
+                bruteforce_threshold = 20_000
+                filter_restrictiveness = len(ids)
+
             if filter_restrictiveness < bruteforce_threshold:
                 use_bruteforce = True
             elif constraint_weight < 0.0:
@@ -272,8 +279,7 @@ class LocalLMISegment(VectorReader):
         vectors_to_write = batch.get_written_vectors(written_ids)
         labels_to_write = [0] * len(vectors_to_write)
 
-        # Deletion Not Handled By LMI, ignore it
-        if len(deleted_ids) > 0 and False:
+        if len(deleted_ids) > 0:
             index = cast(LMI, self._index)
             for i in range(len(deleted_ids)):
                 id = deleted_ids[i]
@@ -283,9 +289,10 @@ class LocalLMISegment(VectorReader):
                 label = self._id_to_label[id]
 
                 index.mark_deleted(label)
-                del self._id_to_label[id]
-                del self._label_to_id[label]
-                del self._id_to_seq_id[id]
+                # Commented out since to make it work this way would require lmi.py modification
+                # del self._id_to_label[id]
+                # del self._label_to_id[label]
+                # del self._id_to_seq_id[id]
 
         # Writing in context of LMI means adding points to internal dataset
         # This dataset is held in memory, so it is not very efficient and for large dataset unusable
