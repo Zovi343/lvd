@@ -11,7 +11,9 @@ WORKDIR /install
 
 COPY ./requirements.txt requirements.txt
 
+# LVD MODIFICATION START
 RUN pip install torch --no-cache-dir --prefix="/install" --index-url https://download.pytorch.org/whl/cpu
+# LVD MODIFICATION END
 
 RUN pip install --no-cache-dir --upgrade --prefix="/install" -r requirements.txt
 
@@ -25,7 +27,9 @@ RUN apt-get update --fix-missing && apt-get install -y --fix-missing \
 
 RUN mkdir /chroma
 WORKDIR /chroma
+# LVD MODIFICATION START
 RUN chmod 777 /chroma
+# LVD MODIFICATION END
 
 COPY --from=builder /install /usr/local
 COPY ./bin/docker_entrypoint.sh /docker_entrypoint.sh

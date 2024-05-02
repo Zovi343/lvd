@@ -101,6 +101,7 @@ class Collection(BaseModel):
         """
         return self._client._count(collection_id=self.id)
 
+    # LVD MODIFICATION START
     def build_index(self) -> Dict[str, List[int]]:
         """Builds the underlying vector index. If the index is already built it rebuilds it.
 
@@ -108,6 +109,8 @@ class Collection(BaseModel):
             np.ndarray: which represents the bucket ids
         """
         return self._client._build_index(self.id)
+
+    # LVD MODIFICATION END
 
     def add(
         self,
@@ -266,10 +269,12 @@ class Collection(BaseModel):
         where: Optional[Where] = None,
         where_document: Optional[WhereDocument] = None,
         include: Include = ["metadatas", "documents", "distances"],
+        # LVD MODIFICATION START
         n_buckets: int = 1,
         bruteforce_threshold: float = None,
         constraint_weight: float = 0.0,
         search_until_bucket_not_empty: bool = False,
+        # LVD MODIFICATION END
     ) -> QueryResult:
         """Get the n_results nearest neighbor embeddings for provided query_embeddings or query_texts.
 
@@ -363,10 +368,12 @@ class Collection(BaseModel):
             where=valid_where,
             where_document=valid_where_document,
             include=include,
+            # LVD MODIFICATION START
             n_buckets=n_buckets,
             bruteforce_threshold=bruteforce_threshold,
             constraint_weight=constraint_weight,
             search_until_bucket_not_empty=search_until_bucket_not_empty,
+            # LVD MODIFICATION END
         )
 
         if (

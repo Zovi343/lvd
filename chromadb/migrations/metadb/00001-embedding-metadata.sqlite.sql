@@ -23,4 +23,6 @@ CREATE TABLE max_seq_id (
 
 CREATE VIRTUAL TABLE embedding_fulltext USING fts5(id, string_value);
 
+-- LVD MODIFICATION START
 CREATE INDEX idx_key_string_value ON embedding_metadata(key, string_value);
+-- LVD MODIFICATION END

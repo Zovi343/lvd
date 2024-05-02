@@ -166,10 +166,12 @@ class QueryResult(TypedDict):
     data: Optional[List[Loadable]]
     metadatas: Optional[List[List[Metadata]]]
     distances: Optional[List[List[float]]]
+    # LVD MODIFICATION START
     bucket_order: List[List[int]]
     bruteforce_used: bool
     constraint_weight: float
     filter_restrictiveness: float
+    # LVD MODIFICATION END
 
 
 class IndexMetadata(TypedDict):
@@ -393,7 +395,9 @@ def validate_where_document(where_document: WhereDocument) -> WhereDocument:
             f"Expected where document to have exactly one operator, got {where_document}"
         )
     for operator, operand in where_document.items():
+        # LVD MODIFICATION START
         if operator not in ["$contains", "$not_contains", "$and", "$or", "$hybrid"]:
+        # LVD MODIFICATION END
             raise ValueError(
                 f"Expected where document operator to be one of $contains, $and, $or, got {operator}"
             )
@@ -408,6 +412,7 @@ def validate_where_document(where_document: WhereDocument) -> WhereDocument:
                 )
             for where_document_expression in operand:
                 validate_where_document(where_document_expression)
+        # LVD MODIFICATION START
         if operator == "$hybrid":
             if not isinstance(operand, dict):
                 raise ValueError(
@@ -432,6 +437,7 @@ def validate_where_document(where_document: WhereDocument) -> WhereDocument:
                         raise ValueError(
                             f"Expected document value for $hybrid_weight to be between 0 and 1, got {operand}"
                         )
+        # LVD MODIFICATION END
         # Value is a $contains operator
         elif not isinstance(operand, str):
             raise ValueError(

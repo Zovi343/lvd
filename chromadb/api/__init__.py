@@ -218,6 +218,7 @@ class BaseAPI(ABC):
         """
         pass
 
+    # LVD MODIFICATION START
     @abstractmethod
     def _build_index(
         self,
@@ -236,6 +237,8 @@ class BaseAPI(ABC):
             ```
         """
         pass
+
+    # LVD MODIFICATION END
 
     #
     # ITEM METHODS
@@ -406,10 +409,12 @@ class BaseAPI(ABC):
         where: Where = {},
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
+        # LVD MODIFICATION START
         n_buckets: int = 1,
         bruteforce_threshold: float = None,
         constraint_weight: float = 0.0,
         search_until_bucket_not_empty: bool = False,
+        # LVD MODIFICATION END
     ) -> QueryResult:
         """[Internal] Performs a nearest neighbors query on a collection specified by UUID.
 
@@ -619,6 +624,7 @@ class ServerAPI(BaseAPI, AdminAPI, Component):
     ) -> None:
         pass
 
+    # LVD MODIFICATION START
     @abstractmethod
     @override
     def _build_index(
@@ -626,3 +632,4 @@ class ServerAPI(BaseAPI, AdminAPI, Component):
         collection_id: UUID,
     ) -> Dict[str, List[int]]:
         pass
+    # LVD MODIFICATION END

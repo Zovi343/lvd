@@ -1,3 +1,6 @@
+# LVD MODIFICATION START
+# Note: this file is inspired by the file chromadb/segment/impl/vector/hnsw_params.py
+
 import multiprocessing
 import re
 from typing import Any, Callable, Dict, Union, List
@@ -89,3 +92,4 @@ class PersistentLMIParams(LMIParams):
         segment_metadata = PersistentLMIParams._select(metadata)
         PersistentLMIParams._validate(segment_metadata, all_validators)
         return segment_metadata
+# LVD MODIFICATION END

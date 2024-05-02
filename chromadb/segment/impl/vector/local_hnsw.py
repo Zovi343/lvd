@@ -128,7 +128,11 @@ class LocalHnswSegment(VectorReader):
     @override
     def query_vectors(
         self, query: VectorQuery
+    # LVD MODIFICATION START
     ) -> (Sequence[Sequence[VectorQueryResult]], List[List[int]], bool, float, float):
+        raise Exception("HNSW not supported in LVD")
+    # LVD MODIFICATION END
+
         if self._index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -183,8 +187,9 @@ class LocalHnswSegment(VectorReader):
                         )
                     )
                 all_results.append(results)
-
+            # LVD MODIFICATION START
             return all_results, [], False, 0.0, 1.0
+            # LVD MODIFICATION END
 
     @override
     def max_seqid(self) -> SeqId:

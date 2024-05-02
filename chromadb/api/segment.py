@@ -286,6 +286,7 @@ class SegmentAPI(ServerAPI):
             )
         return collections
 
+    # LVD MODIFICATION START
     @override
     def _build_index(
         self,
@@ -293,6 +294,7 @@ class SegmentAPI(ServerAPI):
     ) -> Dict[str, List[int]]:
         vector_reader = self._manager.get_segment(collection_id, VectorReader)
         return vector_reader.build_index()
+    # LVD MODIFICATION END
 
     @trace_method("SegmentAPI.count_collections", OpenTelemetryGranularity.OPERATION)
     @override
@@ -651,6 +653,7 @@ class SegmentAPI(ServerAPI):
         metadata_segment = self._manager.get_segment(collection_id, MetadataReader)
         return metadata_segment.count()
 
+    # LVD MODIFICATION START
     # Hybrid Helpers Functions
     # src: https://safjan.com/implementing-rank-fusion-in-python/
     def result_func(self, ranking, q):
@@ -662,6 +665,7 @@ class SegmentAPI(ServerAPI):
     def reciprocal_rank_fusion(self, queries, d, k, result_func, rank_func, rankings):
         return sum([1.0 / (k + rank_func(result_func(rankings, q), d)) if d in result_func(rankings, q) else 0 for q in
                     queries])
+    # LVD MODIFICATION END
 
     @trace_method("SegmentAPI._query", OpenTelemetryGranularity.OPERATION)
     @override
@@ -673,10 +677,12 @@ class SegmentAPI(ServerAPI):
         where: Where = {},
         where_document: WhereDocument = {},
         include: Include = ["documents", "metadatas", "distances"],
+        # LVD MODIFICATION START
         n_buckets: int = 1,
         bruteforce_threshold: float = None,
         constraint_weight: float = 0.0,
         search_until_bucket_not_empty: bool = False,
+        # LVD MODIFICATION END
     ) -> QueryResult:
         add_attributes_to_current_span(
             {
@@ -685,9 +691,11 @@ class SegmentAPI(ServerAPI):
                 "where": str(where),
             }
         )
+        # LVD MODIFICATION START
         hybrid_search = False
         hybrid_vector_ids = []
         hybrid_result_by_id = {}
+        # LVD MODIFICATION END
 
         where = validate_where(where) if where is not None and len(where) > 0 else where
         where_document = (
@@ -709,6 +717,7 @@ class SegmentAPI(ServerAPI):
                 where=where, where_document=where_document
             )
             allowed_ids = [r["id"] for r in records]
+            # LVD MODIFICATION START
             if where_document:
                 if "$hybrid" in where_document.keys():
                     hybrid_vector_ids = allowed_ids[:n_results]
@@ -730,6 +739,7 @@ class SegmentAPI(ServerAPI):
 
                             for hybrid_id, hybrid_embedding in hybrid_embeddings_by_id.items():
                                 hybrid_result_by_id[hybrid_id]["embedding"] = hybrid_embedding
+            # LVD MODIFICATION END
 
         query = t.VectorQuery(
             vectors=query_embeddings,
@@ -737,14 +747,18 @@ class SegmentAPI(ServerAPI):
             allowed_ids=allowed_ids,
             include_embeddings="embeddings" in include,
             options=None,
+            # LVD MODIFICATION START
             n_buckets=n_buckets,
             bruteforce_threshold=bruteforce_threshold,
             constraint_weight=constraint_weight,
             search_until_bucket_not_empty=search_until_bucket_not_empty,
+            # LVD MODIFICATION END
         )
 
         vector_reader = self._manager.get_segment(collection_id, VectorReader)
+        # LVD MODIFICATION START
         results, bucket_order, bruteforce_used, constraint_weight, filter_restrictiveness = vector_reader.query_vectors(query)
+        # LVD MODIFICATION END
 
         ids: List[List[str]] = []
         distances: List[List[float]] = []
@@ -753,6 +767,7 @@ class SegmentAPI(ServerAPI):
         uris: List[List[URI]] = []
         metadatas: List[List[t.Metadata]] = []
 
+        # LVD MODIFICATION START
         if hybrid_search:
             for index, result in enumerate(results):
                 result_ids = [r["id"] for r in result]
@@ -779,6 +794,7 @@ class SegmentAPI(ServerAPI):
                         results[index].append(vector_result_by_id[vector_id])
                     else:
                         results[index].append(hybrid_result_by_id[vector_id])
+        # LVD MODIFICATION END
 
         for result in results:
             ids.append([r["id"] for r in result])
@@ -836,10 +852,12 @@ class SegmentAPI(ServerAPI):
             documents=documents if documents else None,
             uris=uris if uris else None,
             data=None,
+            # LVD MODIFICATION START
             bucket_order=bucket_order,
             bruteforce_used=bruteforce_used,
             constraint_weight=constraint_weight,
             filter_restrictiveness=filter_restrictiveness,
+            # LVD MODIFICATION END
         )
 
     @trace_method("SegmentAPI._peek", OpenTelemetryGranularity.OPERATION)

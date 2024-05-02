@@ -339,7 +339,10 @@ class PersistentLocalHnswSegment(LocalHnswSegment):
     @override
     def query_vectors(
         self, query: VectorQuery
+    # LVD MODIFICATION START
     ) -> (Sequence[Sequence[VectorQueryResult]], List[List[int]], bool, float, float):
+        raise Exception("HNSW not supported in LVD")
+    # LVD MODIFICATION END
         if self._index is None and self._brute_force_index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
@@ -419,7 +422,9 @@ class PersistentLocalHnswSegment(LocalHnswSegment):
                             curr_bf_result[bf_pointer : bf_pointer + remaining]
                         )
                     results.append(curr_results)
+            # LVD MODIFICATION START
             return results, [], False, 0.0, 1.0
+            # LVD MODIFICATION END
 
     @trace_method(
         "PersistentLocalHnswSegment.reset_state", OpenTelemetryGranularity.ALL

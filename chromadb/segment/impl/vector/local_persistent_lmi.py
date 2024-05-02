@@ -1,3 +1,6 @@
+# LVD MODIFICATION START
+# Note: this file is inspired by the file chromadb/segment/impl/vector/local_persistent_hnsw.py
+
 import os
 import shutil
 from overrides import override
@@ -148,18 +151,6 @@ class PersistentLocalLMISegment(LocalLMISegment):
         """Get the storage folder path"""
         folder = os.path.join(self._persist_directory, str(self._id))
         return folder
-
-    def load_lmi_from_pickle(self, file_path):
-        # Check if the file exists
-        if not os.path.isfile(file_path):
-            raise FileNotFoundError(f"No file found at specified path: {file_path}")
-
-        # Load the object from the pickle file
-        with open(file_path, 'rb') as file:
-            lmi_instance = pickle.load(file)
-
-        print("LMI index loaded successfully.")
-        return lmi_instance
 
     @override
     def _init_index(self, dimensionality: int) -> None:
@@ -388,3 +379,4 @@ class PersistentLocalLMISegment(LocalLMISegment):
         """Close the persistent index"""
         if self._index is not None:
             self._index.close_file_handles()
+# LVD MODIFICATION END

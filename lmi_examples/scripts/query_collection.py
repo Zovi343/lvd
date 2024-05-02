@@ -1,3 +1,4 @@
+## LVD MODIFICATION START
 import chromadb
 import pandas as pd
 from chromadb.config import Settings
@@ -36,3 +37,4 @@ results = collection.query(
 print(results['ids'])
 print(results['distances'])
 print(results['metadatas'])
+# LVD MODIFICATION END

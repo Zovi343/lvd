@@ -23,8 +23,10 @@ from enum import Enum
 
 class SegmentType(Enum):
     SQLITE = "urn:chroma:segment/metadata/sqlite"
+    # LVD MODIFICATION START
     LMI_LOCAL_MEMORY = "urn:chroma:segment/vector/lmi-local-memory"
     LMI_LOCAL_PERSISTED = "urn:chroma:segment/vector/lmi-local-persisted"
+    # LVD MODIFICATION END
     HNSW_DISTRIBUTED = "urn:chroma:segment/vector/hnsw-distributed"
 
 
@@ -89,16 +91,20 @@ class VectorReader(SegmentImplementation):
     @abstractmethod
     def query_vectors(
         self, query: VectorQuery
+    # LVD MODIFICATION START
     ) -> (Sequence[Sequence[VectorQueryResult]], List[List[int]], bool, float, float):
+    # LVD MODIFICATION END
         """Given a vector query, return the top-k nearest neighbors for vector in the
         query."""
         pass
 
+    # LVD MODIFICATION START
     @abstractmethod
     def build_index(self) -> Dict[str, List[int]]:
         """Builds index. If the index is already built rebuilds it
         """
         pass
+    # LVD MODIFICATION END
 
 
 class SegmentManager(Component):

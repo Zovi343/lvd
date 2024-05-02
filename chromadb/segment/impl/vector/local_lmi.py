@@ -1,3 +1,6 @@
+# LVD MODIFICATION START
+# Note: this file is inspired by the file chromadb/segment/impl/vector/local_hnsw.py
+
 import numpy as np
 from overrides import override
 from typing import Optional, Sequence, Dict, Set, List, cast
@@ -369,3 +372,4 @@ class LocalLMISegment(VectorReader):
     @override
     def delete(self) -> None:
         raise NotImplementedError()
+# LVD MODIFICATION END

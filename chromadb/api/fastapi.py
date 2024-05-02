@@ -568,10 +568,12 @@ class FastAPI(ServerAPI):
         where: Optional[Where] = {},
         where_document: Optional[WhereDocument] = {},
         include: Include = ["metadatas", "documents", "distances"],
+        # LVD MODIFICATION START
         n_buckets: int = 1,
         bruteforce_threshold: float = None,
         constraint_weight: float = 0.0,
         search_until_bucket_not_empty: bool = False,
+        # LVD MODIFICATION END
     ) -> QueryResult:
         """Gets the nearest neighbors of a single embedding"""
         resp = self._session.post(
@@ -583,10 +585,12 @@ class FastAPI(ServerAPI):
                     "where": where,
                     "where_document": where_document,
                     "include": include,
+                    # LVD MODIFICATION START
                     "n_buckets": n_buckets,
                     "bruteforce_threshold": bruteforce_threshold,
                     "constraint_weight": constraint_weight,
                     "search_until_bucket_not_empty": search_until_bucket_not_empty
+                    # LVD MODIFICATION END
                 }
             ),
         )
@@ -602,12 +606,15 @@ class FastAPI(ServerAPI):
             documents=body.get("documents", None),
             uris=body.get("uris", None),
             data=None,
+            # LVD MODIFICATION START
             bucket_order=body.get("bucket_order", None),
             bruteforce_used=body.get("bruteforce_used", None),
             constraint_weight=body.get("constraint_weight", None),
             filter_restrictiveness=body.get("filter_restrictiveness", None),
+            # LVD MODIFICATION END
         )
 
+    # LVD MODIFICATION START
     @override
     def _build_index(
         self,
@@ -622,6 +629,7 @@ class FastAPI(ServerAPI):
         body = resp.json()
 
         return body
+    # LVD MODIFICATION END
 
     @trace_method("FastAPI.reset", OpenTelemetryGranularity.ALL)
     @override
