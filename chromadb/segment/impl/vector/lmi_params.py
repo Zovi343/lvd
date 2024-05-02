@@ -73,7 +73,7 @@ class LMIParams(Params):
         return segment_metadata
 
 
-class PersistentHnswParams(LMIParams):
+class PersistentLMIParams(LMIParams):
     batch_size: int
     sync_threshold: int
 
@@ -86,6 +86,6 @@ class PersistentHnswParams(LMIParams):
     def extract(metadata: Metadata) -> Metadata:
         """Returns only the relevant lmi params"""
         all_validators = {**param_validators, **persistent_param_validators}
-        segment_metadata = PersistentHnswParams._select(metadata)
-        PersistentHnswParams._validate(segment_metadata, all_validators)
+        segment_metadata = PersistentLMIParams._select(metadata)
+        PersistentLMIParams._validate(segment_metadata, all_validators)
         return segment_metadata

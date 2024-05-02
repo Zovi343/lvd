@@ -35,7 +35,7 @@ elif platform.system() == "Windows":
 SEGMENT_TYPE_IMPLS = {
     SegmentType.SQLITE: "chromadb.segment.impl.metadata.sqlite.SqliteMetadataSegment",
     SegmentType.LMI_LOCAL_MEMORY: "chromadb.segment.impl.vector.local_lmi.LocalLMISegment",
-    SegmentType.HNSW_LOCAL_PERSISTED: "chromadb.segment.impl.vector.local_persistent_hnsw.PersistentLocalHnswSegment",
+    SegmentType.LMI_LOCAL_PERSISTED: "chromadb.segment.impl.vector.local_persistent_lmi.PersistentLocalLMISegment",
 }
 
 
@@ -67,7 +67,7 @@ class LocalSegmentManager(SegmentManager):
         # we need to think about how to handle this configuration
         # TODO: adjust this for persistent LMI
         if self._system.settings.require("is_persistent"):
-            self._vector_segment_type = SegmentType.HNSW_LOCAL_PERSISTED
+            self._vector_segment_type = SegmentType.LMI_LOCAL_PERSISTED
             if platform.system() != "Windows":
                 self._max_file_handles = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
             else:
@@ -124,7 +124,7 @@ class LocalSegmentManager(SegmentManager):
         segments = self._sysdb.get_segments(collection=collection_id)
         for segment in segments:
             if segment["id"] in self._instances:
-                if segment["type"] == SegmentType.HNSW_LOCAL_PERSISTED.value:
+                if segment["type"] == SegmentType.LMI_LOCAL_PERSISTED.value:
                     instance = self.get_segment(collection_id, VectorReader)
                     instance.delete()
                 elif segment["type"] == SegmentType.SQLITE.value:

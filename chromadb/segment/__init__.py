@@ -24,7 +24,7 @@ from enum import Enum
 class SegmentType(Enum):
     SQLITE = "urn:chroma:segment/metadata/sqlite"
     LMI_LOCAL_MEMORY = "urn:chroma:segment/vector/lmi-local-memory"
-    HNSW_LOCAL_PERSISTED = "urn:chroma:segment/vector/hnsw-local-persisted"
+    LMI_LOCAL_PERSISTED = "urn:chroma:segment/vector/lmi-local-persisted"
     HNSW_DISTRIBUTED = "urn:chroma:segment/vector/hnsw-distributed"
 
 
