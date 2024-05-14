@@ -1,7 +1,8 @@
-from typing import ClassVar, Dict, Optional, Sequence
+from typing import ClassVar, Dict, Optional, Sequence, List
 from uuid import UUID
 import uuid
 
+import numpy as np
 from overrides import override
 import requests
 from chromadb.api import AdminAPI, ClientAPI, ServerAPI
@@ -267,6 +268,18 @@ class Client(SharedSystemClient, ClientAPI):
             database=self.database,
         )
 
+    # LVD MODIFICATION START
+    @override
+    def _build_index(
+        self,
+        collection_id: UUID,
+    ) -> Dict[str, List[int]]:
+        return self._server._build_index(
+            collection_id=collection_id,
+        )
+
+    # LVD MODIFICATION END
+
     #
     # ITEM METHODS
     #
@@ -391,6 +404,12 @@ class Client(SharedSystemClient, ClientAPI):
         where: Where = {},
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
+        # LVD MODIFICATION START
+        n_buckets: int = 1,
+        bruteforce_threshold: float = None,
+        constraint_weight: float = 0.0,
+        search_until_bucket_not_empty: bool = False,
+        # LVD MODIFICATION END
     ) -> QueryResult:
         return self._server._query(
             collection_id=collection_id,
@@ -399,6 +418,11 @@ class Client(SharedSystemClient, ClientAPI):
             where=where,
             where_document=where_document,
             include=include,
+            # LVD MODIFICATION START
+            bruteforce_threshold=bruteforce_threshold,
+            constraint_weight=constraint_weight,
+            search_until_bucket_not_empty=search_until_bucket_not_empty,
+            # LVD MODIFICATION END
         )
 
     @override

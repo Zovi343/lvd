@@ -1,0 +1,3 @@
+[submodule "chromadb/li_index"]
+	path = chromadb/li_index
+	url = https://github.com/Coda-Research-Group/LearnedMetricIndex

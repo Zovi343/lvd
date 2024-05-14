@@ -1,3 +1,7 @@
+# LVD MODIFICATION START
+# Note: this file is inspired by the file chromadb/segment/impl/vector/local_hnsw.py
+
+import numpy as np
 from overrides import override
 from typing import Optional, Sequence, Dict, Set, List, cast
 from uuid import UUID
@@ -5,7 +9,7 @@ from chromadb.segment import VectorReader
 from chromadb.ingest import Consumer
 from chromadb.config import System, Settings
 from chromadb.segment.impl.vector.batch import Batch
-from chromadb.segment.impl.vector.hnsw_params import HnswParams
+from chromadb.segment.impl.vector.lmi_params import LMIParams
 from chromadb.telemetry.opentelemetry import (
     OpenTelemetryClient,
     OpenTelemetryGranularity,
@@ -23,25 +27,26 @@ from chromadb.types import (
     Vector,
 )
 from chromadb.errors import InvalidDimensionException
-import hnswlib
 from chromadb.utils.read_write_lock import ReadWriteLock, ReadRWLock, WriteRWLock
+from chromadb.li_index.search.lmi import LMI
 import logging
-import numpy as np
+
+from chromadb.li_index.search.attribtue_filtering.default_filtering import map_range
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_CAPACITY = 1000
 
 
-class LocalHnswSegment(VectorReader):
+class LocalLMISegment(VectorReader):
     _id: UUID
     _consumer: Consumer
     _topic: Optional[str]
     _subscription: UUID
     _settings: Settings
-    _params: HnswParams
+    _params: LMIParams
 
-    _index: Optional[hnswlib.Index]
+    _index: Optional[LMI]
     _dimensionality: Optional[int]
     _total_elements_added: int
     _max_seq_id: SeqId
@@ -59,16 +64,16 @@ class LocalHnswSegment(VectorReader):
         self._id = segment["id"]
         self._topic = segment["topic"]
         self._settings = system.settings
-        self._params = HnswParams(segment["metadata"] or {})
+        self._params = LMIParams(segment["metadata"] or {})
 
         self._index = None
         self._dimensionality = None
         self._total_elements_added = 0
         self._max_seq_id = self._consumer.min_seqid()
 
-        self._id_to_seq_id = {}
-        self._id_to_label = {}
-        self._label_to_id = {}
+        self._id_to_seq_id = {'-1': -1}
+        self._id_to_label = {'-1': 0}
+        self._label_to_id = { 0: '-1'}
 
         self._lock = ReadWriteLock()
         self._opentelemtry_client = system.require(OpenTelemetryClient)
@@ -78,10 +83,9 @@ class LocalHnswSegment(VectorReader):
     @override
     def propagate_collection_metadata(metadata: Metadata) -> Optional[Metadata]:
         # Extract relevant metadata
-        segment_metadata = HnswParams.extract(metadata)
+        segment_metadata = LMIParams.extract(metadata)
         return segment_metadata
 
-    @trace_method("LocalHnswSegment.start", OpenTelemetryGranularity.ALL)
     @override
     def start(self) -> None:
         super().start()
@@ -91,14 +95,12 @@ class LocalHnswSegment(VectorReader):
                 self._topic, self._write_records, start=seq_id
             )
 
-    @trace_method("LocalHnswSegment.stop", OpenTelemetryGranularity.ALL)
     @override
     def stop(self) -> None:
         super().stop()
         if self._subscription:
             self._consumer.unsubscribe(self._subscription)
 
-    @trace_method("LocalHnswSegment.get_vectors", OpenTelemetryGranularity.ALL)
     @override
     def get_vectors(
         self, ids: Optional[Sequence[str]] = None
@@ -114,6 +116,7 @@ class LocalHnswSegment(VectorReader):
         results = []
         if self._index is not None:
             vectors = cast(Sequence[Vector], self._index.get_items(labels))
+            vectors = vectors.tolist()
 
             for label, vector in zip(labels, vectors):
                 id = self._label_to_id[label]
@@ -124,19 +127,19 @@ class LocalHnswSegment(VectorReader):
 
         return results
 
-    @trace_method("LocalHnswSegment.query_vectors", OpenTelemetryGranularity.ALL)
     @override
     def query_vectors(
         self, query: VectorQuery
-    # LVD MODIFICATION START
     ) -> (Sequence[Sequence[VectorQueryResult]], List[List[int]], bool, float, float):
-        raise Exception("HNSW not supported in LVD")
-    # LVD MODIFICATION END
-
         if self._index is None:
             return [[] for _ in range(len(query["vectors"]))]
 
         k = query["k"]
+        n_buckets = query["n_buckets"]
+        bruteforce_threshold = query["bruteforce_threshold"]
+        constraint_weight = query["constraint_weight"]
+        search_until_bucket_not_empty = query["search_until_bucket_not_empty"]
+
         size = len(self._id_to_label)
 
         if k > size:
@@ -145,22 +148,45 @@ class LocalHnswSegment(VectorReader):
             )
             k = size
 
-        labels: Set[int] = set()
         ids = query["allowed_ids"]
-        if ids is not None:
-            labels = {self._id_to_label[id] for id in ids if id in self._id_to_label}
-            if len(labels) < k:
-                k = len(labels)
 
-        def filter_function(label: int) -> bool:
-            return label in labels
+        # CONSTRAINT MODIFICATION START
+        # TODO: this might not work with updates and deletes
+        use_bruteforce = False
+        filter_restrictiveness = 1.0
+        if ids is not None:
+            filter_restrictiveness = len(ids) / self._total_elements_added
+
+            if bruteforce_threshold is None:
+                # Bruteforce optimization based on the ScANN algorithm
+                # https://github.com/google-research/google-research/blob/master/scann/docs/algorithms.md#rules-of-thumb
+                bruteforce_threshold = 20_000
+                filter_restrictiveness = len(ids)
+
+            if filter_restrictiveness < bruteforce_threshold:
+                use_bruteforce = True
+            elif constraint_weight < 0.0:
+                constraint_weight = map_range(1 - filter_restrictiveness, (0.0, 1.0), (0.25, 0.75))
+        # CONSTRAINT MODIFICATION END
+
+        if ids is not None:
+            filter_ids = [self._id_to_label[id] for id in ids if id in self._id_to_label]
 
         query_vectors = query["vectors"]
 
         with ReadRWLock(self._lock):
-            result_labels, distances = self._index.knn_query(
-                query_vectors, k=k, filter=filter_function if ids else None
+            result_labels, distances, bucket_order = self._index.knn_query(
+                query_vectors,
+                k=k,
+                n_buckets=n_buckets,
+                bruteforce_threshold=bruteforce_threshold,
+                constraint_weight=constraint_weight,
+                filter=filter_ids if ids is not None else None,
+                filter_restrictiveness=filter_restrictiveness,
+                use_bruteforce=use_bruteforce,
+                search_until_bucket_not_empty=search_until_bucket_not_empty
             )
+            bucket_order = bucket_order.tolist()
 
             # TODO: these casts are not correct, hnswlib returns np
             # distances = cast(List[List[float]], distances)
@@ -175,9 +201,14 @@ class LocalHnswSegment(VectorReader):
                     id = self._label_to_id[label]
                     seq_id = self._id_to_seq_id[id]
                     if query["include_embeddings"]:
-                        embedding = self._index.get_items([label])[0]
+                        # The embeddings are internally represented as pandas data frame
+                        # In order to work with FastAPI they need to be converted to list, so they can be used in json
+                        embedding = self._index.get_items([label]).tolist()[0]
                     else:
                         embedding = None
+                    if distance.item() == float("inf"):
+                        # FastAPI does not support inf values, since they cannot be serialized to json
+                        distance = np.float32(100_000)
                     results.append(
                         VectorQueryResult(
                             id=id,
@@ -187,9 +218,8 @@ class LocalHnswSegment(VectorReader):
                         )
                     )
                 all_results.append(results)
-            # LVD MODIFICATION START
-            return all_results, [], False, 0.0, 1.0
-            # LVD MODIFICATION END
+
+            return all_results, bucket_order, use_bruteforce, constraint_weight, filter_restrictiveness
 
     @override
     def max_seqid(self) -> SeqId:
@@ -199,25 +229,32 @@ class LocalHnswSegment(VectorReader):
     def count(self) -> int:
         return len(self._id_to_label)
 
-    @trace_method("LocalHnswSegment._init_index", OpenTelemetryGranularity.ALL)
-    def _init_index(self, dimensionality: int) -> None:
-        # more comments available at the source: https://github.com/nmslib/hnswlib
+    @override
+    def build_index(self) -> Dict[str, List[int]]:
+        label_position_to_bucket = self._index.build_index()
+        id_to_bucket = {}
+        for label, bucket in enumerate(label_position_to_bucket):
+            id = self._label_to_id[label + 1]
+            id_to_bucket[id] = bucket.tolist()
 
-        index = hnswlib.Index(
-            space=self._params.space, dim=dimensionality
-        )  # possible options are l2, cosine or ip
+        return id_to_bucket
+
+    def _init_index(self, dimensionality: int) -> None:
+        index = LMI()  # possible options are l2, cosine or ip
         index.init_index(
             max_elements=DEFAULT_CAPACITY,
-            ef_construction=self._params.construction_ef,
-            M=self._params.M,
+            clustering_algorithms=self._params.clustering_algorithms,
+            epochs=self._params.epochs,
+            learning_rate=self._params.lrs,
+            model_types=self._params.model_types,
+            n_categories=self._params.n_categories,
+            kmeans=self._params.kmeans,
         )
-        index.set_ef(self._params.search_ef)
         index.set_num_threads(self._params.num_threads)
 
         self._index = index
         self._dimensionality = dimensionality
 
-    @trace_method("LocalHnswSegment._ensure_index", OpenTelemetryGranularity.ALL)
     def _ensure_index(self, n: int, dim: int) -> None:
         """Create or resize the index as necessary to accomodate N new records"""
         if not self._index:
@@ -230,15 +267,14 @@ class LocalHnswSegment(VectorReader):
                     + f"dimensionality ({self._dimensionality})"
                 )
 
-        index = cast(hnswlib.Index, self._index)
-
+        index = cast(LMI, self._index)
+        # The resizing does not have currently effect on the LMI
         if (self._total_elements_added + n) > index.get_max_elements():
             new_size = int(
                 (self._total_elements_added + n) * self._params.resize_factor
             )
             index.resize_index(max(new_size, DEFAULT_CAPACITY))
 
-    @trace_method("LocalHnswSegment._apply_batch", OpenTelemetryGranularity.ALL)
     def _apply_batch(self, batch: Batch) -> None:
         """Apply a batch of changes, as atomically as possible."""
         deleted_ids = batch.get_deleted_ids()
@@ -247,7 +283,7 @@ class LocalHnswSegment(VectorReader):
         labels_to_write = [0] * len(vectors_to_write)
 
         if len(deleted_ids) > 0:
-            index = cast(hnswlib.Index, self._index)
+            index = cast(LMI, self._index)
             for i in range(len(deleted_ids)):
                 id = deleted_ids[i]
                 # Never added this id to hnsw, so we can safely ignore it for deletions
@@ -256,10 +292,14 @@ class LocalHnswSegment(VectorReader):
                 label = self._id_to_label[id]
 
                 index.mark_deleted(label)
-                del self._id_to_label[id]
-                del self._label_to_id[label]
-                del self._id_to_seq_id[id]
+                # Commented out since to make it work this way would require lmi.py modification
+                # del self._id_to_label[id]
+                # del self._label_to_id[label]
+                # del self._id_to_seq_id[id]
 
+        # Writing in context of LMI means adding points to internal dataset
+        # This dataset is held in memory, so it is not very efficient and for large dataset unusable
+        # Will need to refactor it later
         if len(written_ids) > 0:
             self._ensure_index(batch.add_count, len(vectors_to_write[0]))
 
@@ -271,7 +311,7 @@ class LocalHnswSegment(VectorReader):
                 else:
                     labels_to_write[i] = self._id_to_label[written_ids[i]]
 
-            index = cast(hnswlib.Index, self._index)
+            index = cast(LMI, self._index)
 
             # First, update the index
             index.add_items(vectors_to_write, labels_to_write)
@@ -279,6 +319,7 @@ class LocalHnswSegment(VectorReader):
             # If that succeeds, update the mappings
             for i, id in enumerate(written_ids):
                 self._id_to_seq_id[id] = batch.get_record(id)["seq_id"]
+                self._seq_id_to_id = {value: key for key, value in self._id_to_seq_id.items()}
                 self._id_to_label[id] = labels_to_write[i]
                 self._label_to_id[labels_to_write[i]] = id
 
@@ -288,7 +329,7 @@ class LocalHnswSegment(VectorReader):
             # If that succeeds, finally the seq ID
             self._max_seq_id = batch.max_seq_id
 
-    @trace_method("LocalHnswSegment._write_records", OpenTelemetryGranularity.ALL)
+
     def _write_records(self, records: Sequence[EmbeddingRecord]) -> None:
         """Add a batch of embeddings to the index"""
         if not self._running:
@@ -331,3 +372,4 @@ class LocalHnswSegment(VectorReader):
     @override
     def delete(self) -> None:
         raise NotImplementedError()
+# LVD MODIFICATION END

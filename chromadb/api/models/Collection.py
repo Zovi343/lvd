@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Tuple, Any, Union
+from typing import TYPE_CHECKING, Optional, Tuple, Any, Union, Dict, List
 
 import numpy as np
 from pydantic import BaseModel, PrivateAttr
@@ -100,6 +100,17 @@ class Collection(BaseModel):
 
         """
         return self._client._count(collection_id=self.id)
+
+    # LVD MODIFICATION START
+    def build_index(self) -> Dict[str, List[int]]:
+        """Builds the underlying vector index. If the index is already built it rebuilds it.
+
+        Returns:
+            np.ndarray: which represents the bucket ids
+        """
+        return self._client._build_index(self.id)
+
+    # LVD MODIFICATION END
 
     def add(
         self,
@@ -258,6 +269,12 @@ class Collection(BaseModel):
         where: Optional[Where] = None,
         where_document: Optional[WhereDocument] = None,
         include: Include = ["metadatas", "documents", "distances"],
+        # LVD MODIFICATION START
+        n_buckets: int = 1,
+        bruteforce_threshold: float = None,
+        constraint_weight: float = 0.0,
+        search_until_bucket_not_empty: bool = False,
+        # LVD MODIFICATION END
     ) -> QueryResult:
         """Get the n_results nearest neighbor embeddings for provided query_embeddings or query_texts.
 
@@ -269,6 +286,8 @@ class Collection(BaseModel):
             where: A Where type dict used to filter results by. E.g. `{"$and": ["color" : "red", "price": {"$gte": 4.20}]}`. Optional.
             where_document: A WhereDocument type dict used to filter by the documents. E.g. `{$contains: {"text": "hello"}}`. Optional.
             include: A list of what to include in the results. Can contain `"embeddings"`, `"metadatas"`, `"documents"`, `"distances"`. Ids are always included. Defaults to `["metadatas", "documents", "distances"]`. Optional.
+            n_buckets: The number of buckets to search for each query_embedding or query_texts.
+            bruteforce_threshold: threshold for bruteforce.
 
         Returns:
             QueryResult: A QueryResult object containing the results.
@@ -349,6 +368,12 @@ class Collection(BaseModel):
             where=valid_where,
             where_document=valid_where_document,
             include=include,
+            # LVD MODIFICATION START
+            n_buckets=n_buckets,
+            bruteforce_threshold=bruteforce_threshold,
+            constraint_weight=constraint_weight,
+            search_until_bucket_not_empty=search_until_bucket_not_empty,
+            # LVD MODIFICATION END
         )
 
         if (

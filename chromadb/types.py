@@ -125,6 +125,13 @@ class VectorQuery(TypedDict):
     allowed_ids: Optional[Sequence[str]]
     include_embeddings: bool
     options: Optional[Dict[str, Union[str, int, float, bool]]]
+    # LVD MODIFICATION START
+    n_buckets: int
+    bruteforce_threshold: float
+    constraint_weight: float
+    search_until_bucket_not_empty: bool
+    # LVD MODIFICATION END
+
 
 
 class VectorQueryResult(TypedDict):
@@ -156,10 +163,11 @@ OperatorExpression = Union[
 Where = Dict[
     Union[str, LogicalOperator], Union[LiteralValue, OperatorExpression, List["Where"]]
 ]
-
+# LVD MODIFICATION START
 WhereDocumentOperator = Union[
-    Literal["$contains"], Literal["$not_contains"], LogicalOperator
+    Literal["$contains"], Literal["$not_contains"], Literal["$hybrid"], LogicalOperator
 ]
+# LVD MODIFICATION END
 WhereDocument = Dict[WhereDocumentOperator, Union[str, List["WhereDocument"]]]
 
 

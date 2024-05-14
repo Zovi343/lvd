@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Dict, List
 from uuid import UUID
 
+import numpy as np
 from overrides import override
 from chromadb.config import DEFAULT_DATABASE, DEFAULT_TENANT
 from chromadb.api.models.Collection import Collection
@@ -217,6 +218,28 @@ class BaseAPI(ABC):
         """
         pass
 
+    # LVD MODIFICATION START
+    @abstractmethod
+    def _build_index(
+        self,
+        collection_id: UUID,
+    ) -> Dict[str, List[int]]:
+        """Builds index for collection. If it is already built rebuilds it.
+        Args:
+            collection_id: The UUID of the collection to add the embeddings to.
+
+        Raises:
+            ValueError: If the collection does not exist.
+
+        Examples:
+            ```python
+            client.build_index("my_collection")
+            ```
+        """
+        pass
+
+    # LVD MODIFICATION END
+
     #
     # ITEM METHODS
     #
@@ -386,6 +409,12 @@ class BaseAPI(ABC):
         where: Where = {},
         where_document: WhereDocument = {},
         include: Include = ["embeddings", "metadatas", "documents", "distances"],
+        # LVD MODIFICATION START
+        n_buckets: int = 1,
+        bruteforce_threshold: float = None,
+        constraint_weight: float = 0.0,
+        search_until_bucket_not_empty: bool = False,
+        # LVD MODIFICATION END
     ) -> QueryResult:
         """[Internal] Performs a nearest neighbors query on a collection specified by UUID.
 
@@ -594,3 +623,13 @@ class ServerAPI(BaseAPI, AdminAPI, Component):
         database: str = DEFAULT_DATABASE,
     ) -> None:
         pass
+
+    # LVD MODIFICATION START
+    @abstractmethod
+    @override
+    def _build_index(
+        self,
+        collection_id: UUID,
+    ) -> Dict[str, List[int]]:
+        pass
+    # LVD MODIFICATION END

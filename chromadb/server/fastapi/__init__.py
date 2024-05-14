@@ -262,6 +262,14 @@ class FastAPI(chromadb.server.Server):
             methods=["POST"],
             response_model=None,
         )
+        # LVD MODIFICATION START
+        self.router.add_api_route(
+            "/api/v1/collections/{collection_id}/build_index",
+            self.build_index,
+            methods=["POST"],
+            response_model=None,
+        )
+        # LVD MODIFICATION END
         self.router.add_api_route(
             "/api/v1/collections/{collection_name}",
             self.get_collection,
@@ -614,8 +622,33 @@ class FastAPI(chromadb.server.Server):
             query_embeddings=query.query_embeddings,
             n_results=query.n_results,
             include=query.include,
+            # LVD MODIFICATION START
+            n_buckets=query.n_buckets,
+            bruteforce_threshold=query.bruteforce_threshold,
+            constraint_weight=query.constraint_weight,
+            search_until_bucket_not_empty=query.search_until_bucket_not_empty,
+            # LVD MODIFICATION END
         )
         return nnresult
+
+    # LVD MODIFICATION START
+    @trace_method("FastAPI.build_index", OpenTelemetryGranularity.OPERATION)
+    @authz_context(
+        action=AuthzResourceActions.QUERY,
+        resource=DynamicAuthzResource(
+            id=AuthzDynamicParams.from_function_kwargs(arg_name="collection_id"),
+            type=AuthzResourceTypes.COLLECTION,
+            attributes=attr_from_collection_lookup(collection_id_arg="collection_id"),
+        ),
+    )
+    def build_index(
+        self, collection_id: str
+    ) -> Dict[str, List[int]]:
+        bucket_assignment = self._api._build_index(
+            collection_id=_uuid(collection_id)
+        )
+        return bucket_assignment
+    # LVD MODIFICATION END
 
     def pre_flight_checks(self) -> Dict[str, Any]:
         return {

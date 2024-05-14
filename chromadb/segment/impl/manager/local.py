@@ -34,8 +34,10 @@ elif platform.system() == "Windows":
 
 SEGMENT_TYPE_IMPLS = {
     SegmentType.SQLITE: "chromadb.segment.impl.metadata.sqlite.SqliteMetadataSegment",
-    SegmentType.HNSW_LOCAL_MEMORY: "chromadb.segment.impl.vector.local_hnsw.LocalHnswSegment",
-    SegmentType.HNSW_LOCAL_PERSISTED: "chromadb.segment.impl.vector.local_persistent_hnsw.PersistentLocalHnswSegment",
+    # LVD MODIFICATION START
+    SegmentType.LMI_LOCAL_MEMORY: "chromadb.segment.impl.vector.local_lmi.LocalLMISegment",
+    SegmentType.LMI_LOCAL_PERSISTED: "chromadb.segment.impl.vector.local_persistent_lmi.PersistentLocalLMISegment",
+    # LVD MODIFICATION END
 }
 
 
@@ -50,7 +52,9 @@ class LocalSegmentManager(SegmentManager):
     _segment_cache: Dict[
         UUID, Dict[SegmentScope, Segment]
     ]  # Tracks which segments are loaded for a given collection
-    _vector_segment_type: SegmentType = SegmentType.HNSW_LOCAL_MEMORY
+    # LVD MODIFICATION START
+    _vector_segment_type: SegmentType = SegmentType.LMI_LOCAL_MEMORY
+    # LVD MODIFICATION END
     _lock: Lock
     _max_file_handles: int
 
@@ -65,8 +69,11 @@ class LocalSegmentManager(SegmentManager):
 
         # TODO: prototyping with distributed segment for now, but this should be a configurable option
         # we need to think about how to handle this configuration
+        # TODO: adjust this for persistent LMI
         if self._system.settings.require("is_persistent"):
-            self._vector_segment_type = SegmentType.HNSW_LOCAL_PERSISTED
+            # LVD MODIFICATION START
+            self._vector_segment_type = SegmentType.LMI_LOCAL_PERSISTED
+            # LVD MODIFICATION END
             if platform.system() != "Windows":
                 self._max_file_handles = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
             else:
@@ -123,7 +130,9 @@ class LocalSegmentManager(SegmentManager):
         segments = self._sysdb.get_segments(collection=collection_id)
         for segment in segments:
             if segment["id"] in self._instances:
-                if segment["type"] == SegmentType.HNSW_LOCAL_PERSISTED.value:
+                # LVD MODIFICATION START
+                if segment["type"] == SegmentType.LMI_LOCAL_PERSISTED.value:
+                # LVD MODIFICATION END
                     instance = self.get_segment(collection_id, VectorReader)
                     instance.delete()
                 elif segment["type"] == SegmentType.SQLITE.value:

@@ -1,5 +1,8 @@
-from typing import Optional, Sequence, TypeVar, Type
+from typing import Optional, Sequence, TypeVar, Type, Dict, List
 from abc import abstractmethod
+
+import numpy as np
+
 from chromadb.types import (
     Collection,
     MetadataEmbeddingRecord,
@@ -20,8 +23,10 @@ from enum import Enum
 
 class SegmentType(Enum):
     SQLITE = "urn:chroma:segment/metadata/sqlite"
-    HNSW_LOCAL_MEMORY = "urn:chroma:segment/vector/hnsw-local-memory"
-    HNSW_LOCAL_PERSISTED = "urn:chroma:segment/vector/hnsw-local-persisted"
+    # LVD MODIFICATION START
+    LMI_LOCAL_MEMORY = "urn:chroma:segment/vector/lmi-local-memory"
+    LMI_LOCAL_PERSISTED = "urn:chroma:segment/vector/lmi-local-persisted"
+    # LVD MODIFICATION END
     HNSW_DISTRIBUTED = "urn:chroma:segment/vector/hnsw-distributed"
 
 
@@ -86,10 +91,20 @@ class VectorReader(SegmentImplementation):
     @abstractmethod
     def query_vectors(
         self, query: VectorQuery
-    ) -> Sequence[Sequence[VectorQueryResult]]:
+    # LVD MODIFICATION START
+    ) -> (Sequence[Sequence[VectorQueryResult]], List[List[int]], bool, float, float):
+    # LVD MODIFICATION END
         """Given a vector query, return the top-k nearest neighbors for vector in the
         query."""
         pass
+
+    # LVD MODIFICATION START
+    @abstractmethod
+    def build_index(self) -> Dict[str, List[int]]:
+        """Builds index. If the index is already built rebuilds it
+        """
+        pass
+    # LVD MODIFICATION END
 
 
 class SegmentManager(Component):

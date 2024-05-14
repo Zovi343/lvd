@@ -27,13 +27,14 @@ from chromadb.types import (
     WhereOperator,
 )
 from uuid import UUID
-from pypika import Table, Tables
+from pypika import Table, Tables, Field, Query, Order
 from pypika.queries import QueryBuilder
 import pypika.functions as fn
 from pypika.terms import Criterion
 from itertools import groupby
 from functools import reduce
 import sqlite3
+import re
 
 import logging
 
@@ -120,7 +121,9 @@ class SqliteMetadataSegment(MetadataReader):
         embeddings_t, metadata_t, fulltext_t = Tables(
             "embeddings", "embedding_metadata", "embedding_fulltext_search"
         )
-
+        # LVD MODIFICATION START
+        hybrid_search = False
+        # LVD MODIFICATION END
         limit = limit or 2**63 - 1
         offset = offset or 0
 
@@ -171,11 +174,16 @@ class SqliteMetadataSegment(MetadataReader):
                     )
                 )
             if where_document:
-                metadata_q = metadata_q.where(
-                    self._where_doc_criterion(
-                        metadata_q, where_document, metadata_t, fulltext_t, embeddings_t
-                    )
+                # LVD MODIFICATION START
+                if "$hybrid" in where_document.keys():
+                    hybrid_search = True
+                else:
+                    metadata_q = metadata_q.where(
+                        self._where_doc_criterion(
+                            metadata_q, where_document, metadata_t, fulltext_t, embeddings_t
+                        )
                 )
+                # LVD MODIFICATION END
             if ids is not None:
                 metadata_q = metadata_q.where(
                     embeddings_t.embedding_id.isin(ParameterValue(ids))
@@ -184,7 +192,30 @@ class SqliteMetadataSegment(MetadataReader):
             metadata_q = metadata_q.limit(limit)
             metadata_q = metadata_q.offset(offset)
 
-            q = q.where(embeddings_t.id.isin(metadata_q))
+            # LVD MODIFICATION START
+            if hybrid_search:
+                hybrid_val = where_document['$hybrid']['$hybrid_terms']
+                hybrid_val = cast(list, hybrid_val)
+                hybrid_val = " OR ".join(hybrid_val)
+                efs_rank_subquery = (
+                    Query.from_(fulltext_t)
+                    .select(
+                        fulltext_t.rowid,
+                        fulltext_t.rank
+                    )
+                    .where(Field(fulltext_t.string_value.get_sql(quote_char=None) + "__MATCH__") == ParameterValue(hybrid_val))
+                    .orderby(fulltext_t.rank, order=Order.asc)
+                    .limit(limit) # If limit is applied in the q bellow it does not work
+                    .as_('efs_rank')
+                )
+                q = (
+                    q.right_join(efs_rank_subquery)
+                    .on(embeddings_t.id == efs_rank_subquery.rowid)
+                    .orderby(efs_rank_subquery.rank, order=Order.asc)
+                )
+            else:
+                q = q.where(embeddings_t.id.isin(metadata_q))
+            # LVD MODIFICATION END
         else:
             # In the case where we don't use the metadata table
             # We have to apply limit/offset to embeddings and then join
@@ -211,15 +242,32 @@ class SqliteMetadataSegment(MetadataReader):
 
         with self._db.tx() as cur:
             # Execute the query with the limit and offset already applied
-            return list(self._records(cur, q))
+            # LVD MODIFICATION START
+            return list(self._records(cur, q, hybrid_search))
+            # LVD MODIFICATION END
 
     def _records(
-        self, cur: Cursor, q: QueryBuilder
+        # LVD MODIFICATION START
+        self, cur: Cursor, q: QueryBuilder, hybrid_search: bool
+        # LVD MODIFICATION END
     ) -> Generator[MetadataEmbeddingRecord, None, None]:
         """Given a cursor and a QueryBuilder, yield a generator of records. Assumes
         cursor returns rows in ID order."""
 
         sql, params = get_sql(q)
+        # LVD MODIFICATION START
+        if hybrid_search:
+            # If the $hybrid operator is used, perform search with BM25 FTS5 index
+            # This workaround is necessary since pypika does not support MATCH keyword
+            pattern = r'"([^"]+)__MATCH__"='
+            replacement = r'"\1" MATCH '
+            sql = re.sub(pattern, replacement, sql)
+
+            pattern = r'ORDER BY "embeddings"\."embedding_id",'
+            replacement = 'ORDER BY '
+            sql = re.sub(pattern, replacement, sql)
+        # LVD MODIFICATION END
+
         cur.execute(sql, params)
 
         cur_iterator = iter(cur.fetchone, None)
@@ -564,6 +612,10 @@ class SqliteMetadataSegment(MetadataReader):
                     )
                 )
                 return embeddings_t.id.isin(sq)
+            # LVD MODIFICATION START
+            elif k == "$hybrid":
+                continue
+            # LVD MODIFICATION END
             else:
                 raise ValueError(f"Unknown where_doc operator {k}")
         raise ValueError("Empty where_doc")
