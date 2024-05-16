@@ -9,15 +9,37 @@ To start using this project first make sure that LMI index git submodule is init
 git submodule update --init --recursive
 ```
 
+Create python conda environment and activate it.
+```bash
+conda create --name lvd_env python=3.8.18
+conda activate lvd_env
+```
+
 Next install the dependencies.
 ```bash
 pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -r requirements_dev.txt
+```
+
+Install the torch library. The library is used for training the LMI index.
+```bash
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+```
+
+Create kernel for the Jupyter notebook.
+```bash
+python -m ipykernel install --user --name lvd_env --display-name "lvd_env"
 ```
 
 ## Demo
-Next go to the `lvd_notebooks` directory and open `system_usage.ipynb`. This notebook demonstrates usage of the LVD system
-for management of unstructured data. All the operations supported by LVD are used in this notebook, an example of
+
+### System Usage
+Next run the command bellow to open `system_usage.ipynb`.
+```bash
+jupyter notebook ./lvd_notebooks/system_usage.ipynb --notebook-dir=./ 
+```
+After the notebook opens do not forget to change the kernel in the Jupyter interface to `lvd_env` that was created in the previous step.
+This notebook demonstrates usage of the LVD system  for management of unstructured data. All the operations supported by LVD are used in this notebook, an example of
 some of the data retrieval operations:
 ```python
 # Constrained Search Operation
@@ -38,10 +60,18 @@ results = collection.query(
     where_document={"$hybrid":{ "$hybrid_terms": ["digital", "data", "programming"]}}
 )
 ```
-The `lvd_notebooks` directory also contains notebook `rag_usage.ipynb` which shows how the LVD can be used within the RAG architecture.
-TODO: add more description of the RAG notebook!
 
- 
+### RAG Usage
+Next run the command bellow to open `rag_usage.ipynb`.
+```bash
+jupyter notebook ./lvd_notebooks/rag_usage.ipynb --notebook-dir=./ 
+```
+The notebook `rag_usage.ipynb` shows how the LVD can be used within the RAG architecture.
+For this demonstration the LVD is combined with OpenAI ChatGPT 3.5. You can use any other LLM model if you want.
+The Arxiv dataset that contains scientific papers is used in this demonstration. 
+The documents from the dataset have already been pre-split (pre-chunked) by the authors of the dataset.
+The LVD is used to store the chunked documents and serve them as a context to the LLM model.
+
 ## Server
 You can also set up LVD server locally or deploy it to Kubernetes cluster. Then you can use the LVD client to interact with the server.
 
